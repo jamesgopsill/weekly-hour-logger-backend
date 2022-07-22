@@ -14,3 +14,14 @@ export interface PasswordUpdateArgs {
 	oldPassword: string
 	newPassword: string
 }
+
+export interface UserUpdateArgs {
+	name: string
+	email: string
+	group: string
+}
+
+export interface ScopeArgs {
+	email: string
+	scope: string
+}

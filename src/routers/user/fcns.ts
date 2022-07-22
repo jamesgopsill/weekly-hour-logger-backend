@@ -24,20 +24,6 @@ export const hello = async (req: Request, res: Response) => {
 export const register = async (req: RequestWithToken, res: Response) => {
 	console.log("[register] called")
 
-	// First check if the user is an admin
-	// Get the decoded token that has been passed along with the request from our authorize function.
-	const t = req.token
-
-	if (!t.scopes.includes(UserScopes.ADMIN)) {
-		const json: ResponseFormat = {
-			error: "You do not have the permissions to perform this operation",
-			data: null,
-		}
-		return res.status(400).json(json)
-	}
-
-	console.log("[register] token valid")
-
 	// Get the array of users from the request
 	const body: RegisterArgs[] = req.body
 
@@ -198,15 +184,15 @@ export const updatePassword = async (req: RequestWithToken, res: Response) => {
 	const body: PasswordUpdateArgs = req.body
 
 	// find the user with that email. Returns all for that user
-	const users = await userRepo.find( {email: body.email} )
-	
+	const users = await userRepo.find({ email: body.email })
+
 	// check that a user has been found
 	if (users.length < 1) {
 		const json: ResponseFormat = {
 			error: "No user found",
 			data: null,
 		}
-		return res.status(404).json(json)
+		return res.status(400).json(json)
 	}
 
 	// extract the user info from the array

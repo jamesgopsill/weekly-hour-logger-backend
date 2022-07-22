@@ -3,6 +3,7 @@ import { Validator } from "express-json-validator-middleware"
 import { RegisterSchema, LoginSchema, UserUpdateSchema, PasswordUpdateSchema, ScopeSchema } from "./schemas"
 import { register, hello, login, updateUser, listUsers, updatePassword, updateScope } from "./fcns"
 import { authorize } from "../../middleware"
+import { UserScopes } from "../../entities"
 
 const router = Router()
 const { validate } = new Validator({})
@@ -29,7 +30,7 @@ router.get("/hello", hello)
  */
 router.post(
 	"/register",
-	[authorize, validate({ body: RegisterSchema })],
+	[authorize([UserScopes.ADMIN]), validate({ body: RegisterSchema })],
 	register
 )
 
@@ -63,7 +64,11 @@ router.get("/list", authorize, listUsers)
  *       200:
  *         description: Returns success of the password being updated.
  */
-router.patch("/updatePassword", [authorize, validate({ body: PasswordUpdateSchema }) ], updatePassword)
+router.patch(
+	"/updatePassword",
+	[authorize([UserScopes.ADMIN]), validate({ body: PasswordUpdateSchema })],
+	updatePassword
+)
 
 // update user scopes
 router.patch("/updateScope", [authorize, validate({body: ScopeSchema})], updateScope)

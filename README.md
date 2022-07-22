@@ -1,5 +1,24 @@
 # Weekly hour logger backend
 
+# Getting started
+
+```
+pnpm install
+```
+
+For a development server, run
+
+```
+pnpm start
+```
+
+
+# Testing
+
+```
+pnpm test
+```
+
 # Packages used
 
 - [express](https://expressjs.com/) - API framework

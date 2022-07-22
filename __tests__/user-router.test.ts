@@ -1,12 +1,9 @@
-import { api, server } from "../src"
-import { orm } from "../src/entities"
+import { api, server, orm, LoginArgs, RegisterArgs } from "../src"
 import supertest from "supertest"
 import { validAdminToken } from "./tokens"
-import { LoginArgs, RegisterArgs } from "../src/routers/user/interfaces"
 
 beforeAll(async () => {
 	// initialise the app containing the api and orm connections
-	//await initApp("../db/test.db", "test")
 	const generator = orm.getSchemaGenerator()
 	await generator.dropSchema()
 	await generator.createSchema()

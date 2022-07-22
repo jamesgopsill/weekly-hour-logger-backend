@@ -1,15 +1,14 @@
 import { Request, Response } from "express"
 import { RegisterArgs, LoginArgs } from "./interfaces"
-import { ResponseFormat, verifyToken } from "../../utils"
+import { ResponseFormat } from "../interfaces"
 import bcrypt from "bcrypt"
-import { User, UserScopes } from "../../entities"
+import { User, UserScopes, userRepo } from "../../entities"
 import jwt from "jsonwebtoken"
-import { userRepo } from "../../entities"
+import { RequestWithToken } from "../../middleware/interfaces"
 
 const secret = process.env.SECRET || "secret"
 
 export const hello = async (req: Request, res: Response) => {
-	console.log("hello")
 	return res.status(200).json({
 		error: null,
 		data: "world",
@@ -22,12 +21,14 @@ export const hello = async (req: Request, res: Response) => {
  * @param res
  * @returns
  */
-export const register = async (req: Request, res: Response) => {
-	// First check if the user is an admin
+export const register = async (req: RequestWithToken, res: Response) => {
 	console.log("[register] called")
 
-	const t = verifyToken(req)
-	if (t.error || !t.token.scopes.includes(UserScopes.ADMIN)) {
+	// First check if the user is an admin
+	// Get the decoded token that has been passed along with the request from our authorize function.
+	const t = req.token
+
+	if (!t.scopes.includes(UserScopes.ADMIN)) {
 		const json: ResponseFormat = {
 			error: "You do not have the permissions to perform this operation",
 			data: null,

@@ -2,14 +2,36 @@ import Router from "express-promise-router"
 import { Validator } from "express-json-validator-middleware"
 import { RegisterSchema, LoginSchema } from "./schemas"
 import { register, hello, login } from "./fcns"
+import { authorize } from "../../middleware"
 
 const router = Router()
 const { validate } = new Validator({})
 
+/**
+ * @openapi
+ * /user/hello:
+ *   get:
+ *     description: A simple hello test endpoint
+ *     responses:
+ *       200:
+ *         description: Returns a "world".
+ */
 router.get("/hello", hello)
 
-// Register a user
-router.post("/register", validate({ body: RegisterSchema }), register)
+/**
+ * @openapi
+ * /user/register:
+ *   post:
+ *     description: For registering one or more users. Requires authentication
+ *     responses:
+ *       200:
+ *         description: Returns success of the users have been added.
+ */
+router.post(
+	"/register",
+	[authorize, validate({ body: RegisterSchema })],
+	register
+)
 
 // Login a user
 router.post("/login", validate({ body: LoginSchema }), login)

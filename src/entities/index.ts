@@ -15,7 +15,7 @@ export const orm = await MikroORM.init({
 	dbName: dbPath,
 	type: "sqlite",
 	entities: [User],
-	debug: true,
+	debug: false,
 	allowGlobalContext: true,
 })
 

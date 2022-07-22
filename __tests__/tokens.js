@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken"
-import { UserScopes } from "../src/entities"
+import { UserScopes } from "../src"
 
 const secret = "test"
 

@@ -32,6 +32,22 @@ export const LoginSchema: AllowedSchema = {
 	},
 }
 
+export const UserUpdateSchema: AllowedSchema = {
+	type: "object",
+	required: ["name", "email", "group"],
+	properties: {
+		name: {
+			type: "string",
+		},
+		email: {
+			type: "string",
+		},
+		group: {
+			type: "string",
+		},
+	},
+}
+
 export const PasswordUpdateSchema: AllowedSchema = {
 	type: "object",
 	required: ["email", "oldPassword", "newPassword"],
@@ -43,6 +59,19 @@ export const PasswordUpdateSchema: AllowedSchema = {
 			type: "string",
 		},
 		newPassword: {
+			type: "string",
+		},
+	},
+}
+
+export const ScopeSchema: AllowedSchema = {
+	type: "object",
+	required: ["email", "scope"],
+	properties: {
+		email: {
+			type: "string",
+		},
+		scope: {
 			type: "string",
 		},
 	},

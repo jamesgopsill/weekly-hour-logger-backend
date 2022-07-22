@@ -1,4 +1,11 @@
-import { api, server, orm, LoginArgs, RegisterArgs, PasswordUpdateArgs } from "../src"
+import {
+	api,
+	server,
+	orm,
+	LoginArgs,
+	RegisterArgs,
+	PasswordUpdateArgs,
+} from "../src"
 import supertest from "supertest"
 import { validAdminToken } from "./tokens"
 
@@ -76,13 +83,12 @@ test("POST /user/login", async () => {
 })
 
 test("PATCH /user/updatePassword", async () => {
-	const args: PasswordUpdateArgs=
-		{
-			email: "test@test.com",
-			oldPassword: "test",
-			newPassword: "test",
-		}
-	
+	const args: PasswordUpdateArgs = {
+		email: "test@test.com",
+		oldPassword: "test",
+		newPassword: "test",
+	}
+
 	await supertest(api)
 		.patch("/user/updatePassword")
 		.set("Content-Type", "application/json")

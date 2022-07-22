@@ -3,6 +3,7 @@ import { Validator } from "express-json-validator-middleware"
 import { RegisterSchema, LoginSchema, PasswordUpdateSchema } from "./schemas"
 import { register, hello, login, updatePassword } from "./fcns"
 import { authorize } from "../../middleware"
+import { UserScopes } from "../../entities"
 
 const router = Router()
 const { validate } = new Validator({})
@@ -29,7 +30,7 @@ router.get("/hello", hello)
  */
 router.post(
 	"/register",
-	[authorize, validate({ body: RegisterSchema })],
+	[authorize([UserScopes.ADMIN]), validate({ body: RegisterSchema })],
 	register
 )
 
@@ -47,7 +48,11 @@ router.post("/login", validate({ body: LoginSchema }), login)
 // router.patch("/list")
 
 // update user password
-router.patch("/updatePassword", [authorize, validate({ body: PasswordUpdateSchema }) ], updatePassword)
+router.patch(
+	"/updatePassword",
+	[authorize([UserScopes.ADMIN]), validate({ body: PasswordUpdateSchema })],
+	updatePassword
+)
 
 // update user scopes
 // router.patch("/admin/scopes")

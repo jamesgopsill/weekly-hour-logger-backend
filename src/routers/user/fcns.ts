@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import { RegisterArgs, LoginArgs } from "./interfaces"
+import { RegisterArgs, LoginArgs, PasswordUpdateArgs } from "./interfaces"
 import { ResponseFormat } from "../interfaces"
 import bcrypt from "bcrypt"
 import { User, UserScopes, userRepo } from "../../entities"
@@ -143,4 +143,60 @@ export const login = async (req: Request, res: Response) => {
 		}
 		return res.status(400).json(json)
 	}
+}
+
+// update user password. Users can update this themselves.
+export const updatePassword = async (req: RequestWithToken, res: Response) => {
+
+	console.log("I got here!")
+
+	// Get the body data, and turn the email into a search query
+	const body: PasswordUpdateArgs = req.body
+
+	// find the user with that email. Returns all for that user
+	const users = await userRepo.find( {email: body.email} )
+	
+	// check that a user has been found
+	if (users.length < 1) {
+		const json: ResponseFormat = {
+			error: "No user found",
+			data: null,
+		}
+		return res.status(404).json(json)
+	}
+
+	// extract the user info from the array
+	const user = users[0]
+
+	// check the old password matches
+	try {
+		if (!bcrypt.compareSync(body.oldPassword, user.passwordHash)) {
+			const json: ResponseFormat = {
+				error: "Passwords do not match",
+				data: null,
+			}
+			return res.status(400).json(json)
+		}
+
+		// update the new password
+		const saltRounds = 10
+		const hash = bcrypt.hashSync(body.newPassword, saltRounds)
+		user.passwordHash = hash
+		await userRepo.persistAndFlush(user)
+	} catch (e: any) {
+		console.log("Error updating password")
+		const json: ResponseFormat = {
+			error: "Error updating password",
+			data: null,
+		}
+		return res.status(400).json(json)
+	}
+
+	// if we reach here, then all has happened as we want it to
+	const json: ResponseFormat = {
+		error: null,
+		data: "success",
+	}
+
+	return res.status(200).json(json)
 }

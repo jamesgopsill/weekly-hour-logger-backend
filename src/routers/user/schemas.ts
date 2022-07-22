@@ -63,3 +63,16 @@ export const PasswordUpdateSchema: AllowedSchema = {
 		},
 	},
 }
+
+export const ScopeSchema: AllowedSchema = {
+	type: "object",
+	required: ["email", "scope"],
+	properties: {
+		email: {
+			type: "string",
+		},
+		scope: {
+			type: "string",
+		},
+	},
+}

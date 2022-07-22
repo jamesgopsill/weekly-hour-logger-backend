@@ -20,3 +20,8 @@ export interface PasswordUpdateArgs {
 	oldPassword: string
 	newPassword: string
 }
+
+export interface ScopeArgs {
+	email: string
+	scope: string
+}

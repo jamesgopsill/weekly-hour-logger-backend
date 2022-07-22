@@ -1,7 +1,7 @@
 import Router from "express-promise-router"
 import { Validator } from "express-json-validator-middleware"
-import { RegisterSchema, LoginSchema, UserUpdateSchema, PasswordUpdateSchema } from "./schemas"
-import { register, hello, login, updateUser, updatePassword } from "./fcns"
+import { RegisterSchema, LoginSchema, UserUpdateSchema, PasswordUpdateSchema, ScopeSchema } from "./schemas"
+import { register, hello, login, updateUser, listUsers, updatePassword, updateScope } from "./fcns"
 import { authorize } from "../../middleware"
 
 const router = Router()
@@ -40,16 +40,32 @@ router.post("/login", validate({ body: LoginSchema }), login)
 // perform a token check
 // router.get("/token")
 
-// update user details
+/**
+ * @openapi
+ * /user/updateUser:
+ *   patch:
+ *     description: To update user name, email, or group. Requires authentication.
+ *     responses:
+ *       200:
+ *         description: Returns success of the user has been updated.
+ */
 router.patch("/updateUser", [authorize, validate({body: UserUpdateSchema})], updateUser)
 
-// update users
-// router.patch("/list")
+// Get a list of users
+router.get("/list", authorize, listUsers)
 
-// update user password
+/**
+ * @openapi
+ * /user/updatePassword:
+ *   get:
+ *     description: Update the password for a user. Requires the old password and a new password
+ *     responses:
+ *       200:
+ *         description: Returns success of the password being updated.
+ */
 router.patch("/updatePassword", [authorize, validate({ body: PasswordUpdateSchema }) ], updatePassword)
 
 // update user scopes
-// router.patch("/admin/scopes")
+router.patch("/updateScope", [authorize, validate({body: ScopeSchema})], updateScope)
 
 export const UserRouter = router

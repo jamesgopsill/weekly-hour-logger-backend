@@ -1,4 +1,4 @@
-import { api, server, orm, LoginArgs, RegisterArgs, UserUpdateArgs, PasswordUpdateArgs } from "../src"
+import { api, server, orm, LoginArgs, RegisterArgs, UserUpdateArgs, PasswordUpdateArgs, ScopeArgs } from "../src"
 import supertest from "supertest"
 import { validAdminToken } from "./tokens"
 
@@ -109,6 +109,37 @@ test("PATCH /user/updatePassword", async () => {
 		.set("authorization", `Bearer ${validAdminToken}`)
 		.send(args)
 		.expect(200)
+		.then((res) => {
+			console.log(res.text)
+		})
+})
+
+test("PATCH /user/updateScope", async () => {
+	const args: ScopeArgs =
+		{
+			email: "test@test.com",
+			scope: "user",
+		}
+	
+	await supertest(api)
+		.patch("/user/updateScope")
+		.set("Content-Type", "application/json")
+		.set("authorization", `Bearer ${validAdminToken}`)
+		.send(args)
+		.expect(200)
+		.then((res) => {
+			console.log(res.text)
+		})
+})
+
+test("GET /user/list", async () => {
+
+	await supertest(api)
+		.get("/user/list")
+		.set("Content-Type", "application/json")
+		.set("authorization", `Bearer ${validAdminToken}`)
+		.send()
+		// .expect(200)
 		.then((res) => {
 			console.log(res.text)
 		})

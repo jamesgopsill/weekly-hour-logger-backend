@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import { RegisterArgs, LoginArgs, UserUpdateArgs, PasswordUpdateArgs } from "./interfaces"
+import { RegisterArgs, LoginArgs, UserUpdateArgs, PasswordUpdateArgs, ScopeArgs } from "./interfaces"
 import { ResponseFormat } from "../interfaces"
 import bcrypt from "bcrypt"
 import { User, UserScopes, userRepo } from "../../entities"
@@ -194,8 +194,6 @@ export const updateUser = async (req: Request, res: Response) => {
 // update user password. Users can update this themselves.
 export const updatePassword = async (req: RequestWithToken, res: Response) => {
 
-	console.log("I got here!")
-
 	// Get the body data, and turn the email into a search query
 	const body: PasswordUpdateArgs = req.body
 
@@ -245,4 +243,74 @@ export const updatePassword = async (req: RequestWithToken, res: Response) => {
 	}
 
 	return res.status(200).json(json)
+}
+
+// get a list of all users in the database
+export const listUsers = async (req: RequestWithToken, res: Response) => {
+
+	const users = await userRepo.find( {scopes: [UserScopes.USER]} )
+	console.log("I got here!")
+
+	// check that a user has been found
+	if (users.length < 1) {
+		const json: ResponseFormat = {
+			error: "No user found",
+			data: null,
+		}
+		return res.status(404).json(json)
+	}
+
+	console.log(users[0])
+	return res.status(200).json({users})
+}
+
+// update user scope. Requires admin.
+export const updateScope = async (req: RequestWithToken, res: Response) => {
+
+	// Get the body data, and turn the email into a search query
+	const body: ScopeArgs = req.body
+	const query = { email: body.email }
+
+	// find the user with that email. Returns all for that user
+	const users = await userRepo.find( query )
+	
+	// check that a user has been found
+	if (users.length < 1) {
+		const json: ResponseFormat = {
+			error: "No user found",
+			data: null,
+		}
+		return res.status(404).json(json)
+	}
+
+	// extract the user info from the array
+	const user = users[0]
+
+	// Check the requested scope, and if it's admin, create admin combined rights
+	try {
+		if (body.scope == UserScopes.ADMIN) {
+			user.scopes = [UserScopes.USER, UserScopes.ADMIN]
+			await userRepo.persistAndFlush(user)
+			const json: ResponseFormat = {
+				error: null,
+				data: "success",
+			}	
+			return res.status(200).json(json)
+		}
+		user.scopes = [UserScopes.USER]
+		await userRepo.persistAndFlush(user)
+		const json: ResponseFormat = {
+			error: null,
+			data: "success",
+		}	
+		return res.status(200).json(json)
+	
+	} catch {
+		console.log("Error updating user scope")
+		const json: ResponseFormat = {
+			error: "Error updating user scope",
+			data: null,
+		}
+		return res.status(400).json(json)
+	}
 }

@@ -1,7 +1,21 @@
 import Router from "express-promise-router"
 import { Validator } from "express-json-validator-middleware"
-import { RegisterSchema, LoginSchema, UserUpdateSchema, PasswordUpdateSchema, ScopeSchema } from "./schemas"
-import { register, hello, login, updateUser, listUsers, updatePassword, updateScope } from "./fcns"
+import {
+	RegisterSchema,
+	LoginSchema,
+	UserUpdateSchema,
+	PasswordUpdateSchema,
+	ScopeSchema,
+} from "./schemas"
+import {
+	register,
+	hello,
+	login,
+	updateUser,
+	listUsers,
+	updatePassword,
+	updateScope,
+} from "./fcns"
 import { authorize } from "../../middleware"
 import { UserScopes } from "../../entities"
 
@@ -50,10 +64,14 @@ router.post("/login", validate({ body: LoginSchema }), login)
  *       200:
  *         description: Returns success of the user has been updated.
  */
-router.patch("/updateUser", [authorize, validate({body: UserUpdateSchema})], updateUser)
+router.patch(
+	"/updateUser",
+	[authorize([UserScopes.ADMIN]), validate({ body: UserUpdateSchema })],
+	updateUser
+)
 
 // Get a list of users
-router.get("/list", authorize, listUsers)
+router.get("/list", authorize([UserScopes.ADMIN]), listUsers)
 
 /**
  * @openapi
@@ -71,6 +89,10 @@ router.patch(
 )
 
 // update user scopes
-router.patch("/updateScope", [authorize, validate({body: ScopeSchema})], updateScope)
+router.patch(
+	"/updateScope",
+	[authorize([UserScopes.ADMIN]), validate({ body: ScopeSchema })],
+	updateScope
+)
 
 export const UserRouter = router

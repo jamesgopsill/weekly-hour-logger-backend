@@ -1,5 +1,11 @@
 import { Request, Response } from "express"
-import { RegisterArgs, LoginArgs, UserUpdateArgs, PasswordUpdateArgs, ScopeArgs } from "./interfaces"
+import {
+	RegisterArgs,
+	LoginArgs,
+	UserUpdateArgs,
+	PasswordUpdateArgs,
+	ScopeArgs,
+} from "./interfaces"
 import { ResponseFormat } from "../interfaces"
 import bcrypt from "bcrypt"
 import { User, UserScopes, userRepo } from "../../entities"
@@ -132,15 +138,14 @@ export const login = async (req: Request, res: Response) => {
 }
 
 // update user information. Only admins can do this at the moment.
-export const updateUser = async (req: Request, res: Response) => {
-
+export const updateUser = async (req: RequestWithToken, res: Response) => {
 	// Get the body data, and turn the email into a search query
 	const body: UserUpdateArgs = req.body
 	const query = { email: body.email }
 
 	// find the user with that email. Returns all for that user
 	const users = await userRepo.find(query)
-	
+
 	// check that a user has been found
 	if (users.length < 1) {
 		const json: ResponseFormat = {
@@ -157,7 +162,7 @@ export const updateUser = async (req: Request, res: Response) => {
 		user.name = body.name
 		user.email = body.email
 		user.group = body.group
-		await userRepo.persistAndFlush(user) 
+		await userRepo.persistAndFlush(user)
 	} catch (e: any) {
 		console.log("Error updating user")
 		const json: ResponseFormat = {
@@ -174,12 +179,10 @@ export const updateUser = async (req: Request, res: Response) => {
 	}
 
 	return res.status(200).json(json)
- 
 }
 
 // update user password. Users can update this themselves.
 export const updatePassword = async (req: RequestWithToken, res: Response) => {
-
 	// Get the body data, and turn the email into a search query
 	const body: PasswordUpdateArgs = req.body
 
@@ -233,8 +236,7 @@ export const updatePassword = async (req: RequestWithToken, res: Response) => {
 
 // get a list of all users in the database
 export const listUsers = async (req: RequestWithToken, res: Response) => {
-
-	const users = await userRepo.find( {scopes: [UserScopes.USER]} )
+	const users = await userRepo.find({ scopes: [UserScopes.USER] })
 	console.log("I got here!")
 
 	// check that a user has been found
@@ -247,19 +249,18 @@ export const listUsers = async (req: RequestWithToken, res: Response) => {
 	}
 
 	console.log(users[0])
-	return res.status(200).json({users})
+	return res.status(200).json({ users })
 }
 
 // update user scope. Requires admin.
 export const updateScope = async (req: RequestWithToken, res: Response) => {
-
 	// Get the body data, and turn the email into a search query
 	const body: ScopeArgs = req.body
 	const query = { email: body.email }
 
 	// find the user with that email. Returns all for that user
-	const users = await userRepo.find( query )
-	
+	const users = await userRepo.find(query)
+
 	// check that a user has been found
 	if (users.length < 1) {
 		const json: ResponseFormat = {
@@ -280,7 +281,7 @@ export const updateScope = async (req: RequestWithToken, res: Response) => {
 			const json: ResponseFormat = {
 				error: null,
 				data: "success",
-			}	
+			}
 			return res.status(200).json(json)
 		}
 		user.scopes = [UserScopes.USER]
@@ -288,9 +289,8 @@ export const updateScope = async (req: RequestWithToken, res: Response) => {
 		const json: ResponseFormat = {
 			error: null,
 			data: "success",
-		}	
+		}
 		return res.status(200).json(json)
-	
 	} catch {
 		console.log("Error updating user scope")
 		const json: ResponseFormat = {

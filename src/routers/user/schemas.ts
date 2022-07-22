@@ -31,3 +31,19 @@ export const LoginSchema: AllowedSchema = {
 		},
 	},
 }
+
+export const PasswordUpdateSchema: AllowedSchema = {
+	type: "object",
+	required: ["email", "oldPassword", "newPassword"],
+	properties: {
+		email: {
+			type: "string",
+		},
+		oldPassword: {
+			type: "string",
+		},
+		newPassword: {
+			type: "string",
+		},
+	},
+}

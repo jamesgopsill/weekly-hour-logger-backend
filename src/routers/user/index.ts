@@ -1,7 +1,7 @@
 import Router from "express-promise-router"
 import { Validator } from "express-json-validator-middleware"
-import { RegisterSchema, LoginSchema } from "./schemas"
-import { register, hello, login } from "./fcns"
+import { RegisterSchema, LoginSchema, PasswordUpdateSchema } from "./schemas"
+import { register, hello, login, updatePassword } from "./fcns"
 import { authorize } from "../../middleware"
 
 const router = Router()
@@ -47,7 +47,7 @@ router.post("/login", validate({ body: LoginSchema }), login)
 // router.patch("/list")
 
 // update user password
-// router.patch("/password")
+router.patch("/updatePassword", [authorize, validate({ body: PasswordUpdateSchema }) ], updatePassword)
 
 // update user scopes
 // router.patch("/admin/scopes")

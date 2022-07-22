@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import { RegisterArgs, LoginArgs, PasswordUpdateArgs } from "./interfaces"
+import { RegisterArgs, LoginArgs, UserUpdateArgs, PasswordUpdateArgs } from "./interfaces"
 import { ResponseFormat } from "../interfaces"
 import bcrypt from "bcrypt"
 import { User, UserScopes, userRepo } from "../../entities"
@@ -143,6 +143,52 @@ export const login = async (req: Request, res: Response) => {
 		}
 		return res.status(400).json(json)
 	}
+}
+
+// update user information. Only admins can do this at the moment.
+export const updateUser = async (req: Request, res: Response) => {
+
+	// Get the body data, and turn the email into a search query
+	const body: UserUpdateArgs = req.body
+	const query = { email: body.email }
+
+	// find the user with that email. Returns all for that user
+	const users = await userRepo.find(query)
+	
+	// check that a user has been found
+	if (users.length < 1) {
+		const json: ResponseFormat = {
+			error: "No user found",
+			data: null,
+		}
+		return res.status(400).json(json)
+	}
+
+	const user = users[0]
+
+	// tries to update the database with the new user info
+	try {
+		user.name = body.name
+		user.email = body.email
+		user.group = body.group
+		await userRepo.persistAndFlush(user) 
+	} catch (e: any) {
+		console.log("Error updating user")
+		const json: ResponseFormat = {
+			error: "Error updating user",
+			data: null,
+		}
+		return res.status(400).json(json)
+	}
+
+	// if we reach here, then all has happened as we want it to
+	const json: ResponseFormat = {
+		error: null,
+		data: "success",
+	}
+
+	return res.status(200).json(json)
+ 
 }
 
 // update user password. Users can update this themselves.

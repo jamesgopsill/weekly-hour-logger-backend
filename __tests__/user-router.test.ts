@@ -1,4 +1,4 @@
-import { api, server, orm, LoginArgs, RegisterArgs, PasswordUpdateArgs } from "../src"
+import { api, server, orm, LoginArgs, RegisterArgs, UserUpdateArgs, PasswordUpdateArgs } from "../src"
 import supertest from "supertest"
 import { validAdminToken } from "./tokens"
 
@@ -68,6 +68,26 @@ test("POST /user/login", async () => {
 	await supertest(api)
 		.post("/user/login")
 		.set("Content-Type", "application/json")
+		.send(args)
+		.expect(200)
+		.then((res) => {
+			console.log(res.text)
+		})
+})
+
+test("PATCH /user/updateUser -- admin", async () => {
+	const args: UserUpdateArgs =
+		{
+			name: "Test User",
+			email: "test@test.com",
+			group: "",
+		}
+	
+
+	await supertest(api)
+		.patch("/user/updateUser")
+		.set("Content-Type", "application/json")
+		.set("authorization", `Bearer ${validAdminToken}`)
 		.send(args)
 		.expect(200)
 		.then((res) => {

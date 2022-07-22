@@ -5,8 +5,8 @@ import {
 	LoginArgs,
 	RegisterArgs,
 	PasswordUpdateArgs,
-	UserUpdateArgs,
 	ScopeArgs,
+	UserUpdateArgs,
 } from "../src"
 import supertest from "supertest"
 import { validAdminToken } from "./tokens"

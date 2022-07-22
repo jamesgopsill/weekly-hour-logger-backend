@@ -73,15 +73,7 @@ router.patch(
 // Get a list of users
 router.get("/list", authorize([UserScopes.ADMIN]), listUsers)
 
-/**
- * @openapi
- * /user/updatePassword:
- *   get:
- *     description: Update the password for a user. Requires the old password and a new password
- *     responses:
- *       200:
- *         description: Returns success of the password being updated.
- */
+// update user password
 router.patch(
 	"/updatePassword",
 	[authorize([UserScopes.ADMIN]), validate({ body: PasswordUpdateSchema })],

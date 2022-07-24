@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon -L --watch src --ext ts --exec pnpm start",
-    "start": "tsc && node --experimental-specifier-resolution=node dist/index.js",
+    "start": "pnpm clean && tsc && node --experimental-specifier-resolution=node dist/index.js",
     "clean": "node utils/clean_dist.js",
     "serve": "node dist/index.js",
     "build": "tsc",

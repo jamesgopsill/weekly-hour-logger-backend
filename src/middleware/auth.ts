@@ -64,5 +64,3 @@ export const authorize = (scopes: UserScopes[]) => {
 		}
 	}
 }
-
-

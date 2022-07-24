@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"outDir": "dist",
-		"incremental": true,
+		"incremental": false,
 		"rootDir": "src",
 		"experimentalDecorators": true,
 		"emitDecoratorMetadata": true,

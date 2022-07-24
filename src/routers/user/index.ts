@@ -15,6 +15,7 @@ import {
 	listUsers,
 	updatePassword,
 	updateScope,
+	refreshToken
 } from "./fcns"
 import { authorize } from "../../middleware"
 import { UserScopes } from "../../entities"
@@ -60,7 +61,7 @@ router.get("/list", authorize([UserScopes.ADMIN]), listUsers)
  */
 router.patch(
 	"/password",
-	[authorize([UserScopes.ADMIN]), validate({ body: passwordSchema })],
+	[authorize([UserScopes.ADMIN, UserScopes.USER]), validate({ body: passwordSchema })],
 	updatePassword
 )
 
@@ -73,8 +74,13 @@ router.patch(
 	updateScope
 )
 
+// Routes TODO
+// refresh a token
+router.post("/refresh-token",
+[	authorize([UserScopes.USER])],
+	refreshToken
+)
+
 export const UserRouter = router
 
-// Routes TODO
-// perform a token check
-// router.get("/token")
+

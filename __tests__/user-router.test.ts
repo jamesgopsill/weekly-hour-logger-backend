@@ -67,6 +67,9 @@ test("POST /user/register - no token", async () => {
 		.set("Content-Type", "application/json")
 		.send(args)
 		.expect(400)
+		.then((res) => {
+			console.log(res.text)
+		})
 })
 
 test("POST /user/login", async () => {
@@ -140,6 +143,19 @@ test("PATCH /user/scopes", async () => {
 test("GET /user/list", async () => {
 	await supertest(api)
 		.get("/user/list")
+		.set("Content-Type", "application/json")
+		.set("authorization", `Bearer ${validAdminToken}`)
+		.send()
+		.expect(200)
+		.then((res) => {
+			console.log(res.text)
+		})
+})
+
+
+test("POST /user/refresh-token", async () => {
+	await supertest(api)
+		.post("/user/refresh-token")
 		.set("Content-Type", "application/json")
 		.set("authorization", `Bearer ${validAdminToken}`)
 		.send()

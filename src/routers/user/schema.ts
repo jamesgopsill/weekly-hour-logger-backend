@@ -218,4 +218,16 @@ export const userRouterSchema = {
 			},
 		},
 	},
+	"user/refresh-token": {
+		post: {
+			description: "Refreshes the expiry date of a current valid token.",
+			consumes: ["application/json"],
+			parameters: [authHeaderSchema],
+			responses: {
+				200: {
+					description: "Returns the new Bearer token",
+				},
+			},
+		},
+	},
 }

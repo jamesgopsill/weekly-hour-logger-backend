@@ -14,6 +14,12 @@ import { RequestWithToken } from "../../middleware/interfaces"
 
 const secret = process.env.SECRET || "secret"
 
+/**
+ * hello returns "world"
+ * @param req 
+ * @param res 
+ * @returns 
+ */
 export const hello = async (req: Request, res: Response) => {
 	return res.status(200).json({
 		error: null,
@@ -141,7 +147,9 @@ export const login = async (req: Request, res: Response) => {
 export const updateUser = async (req: RequestWithToken, res: Response) => {
 	// Get the body data, and turn the email into a search query
 	const body: UserUpdateArgs = req.body
-	const query = { email: body.email }
+	const query = { 
+		email: body.email 
+	}
 
 	// find the user with that email. Returns all for that user
 	const users = await userRepo.find(query)
@@ -156,6 +164,15 @@ export const updateUser = async (req: RequestWithToken, res: Response) => {
 	}
 
 	const user = users[0]
+
+	
+	if (user.email != req.token.email && !req.token.scopes.includes(UserScopes.ADMIN)) {
+		const json: ResponseFormat = {
+			error: "You do not have the permissions to perform this operation.",
+			data: null,
+		}
+		return res.status(400).json(json)
+	}
 
 	// tries to update the database with the new user info
 	try {
@@ -201,6 +218,15 @@ export const updatePassword = async (req: RequestWithToken, res: Response) => {
 	// extract the user info from the array
 	const user = users[0]
 
+	// Check if it is the user or admin requesting the change of password.
+	if (user.email != req.token.email && !req.token.scopes.includes(UserScopes.ADMIN)) {
+		const json: ResponseFormat = {
+			error: "You do not have the permissions to perform this operation.",
+			data: null,
+		}
+		return res.status(400).json(json)
+	}
+
 	// check the old password matches
 	try {
 		if (!bcrypt.compareSync(body.oldPassword, user.passwordHash)) {
@@ -237,7 +263,6 @@ export const updatePassword = async (req: RequestWithToken, res: Response) => {
 // get a list of all users in the database
 export const listUsers = async (req: RequestWithToken, res: Response) => {
 	const users = await userRepo.find({ scopes: [UserScopes.USER] })
-	console.log("I got here!")
 
 	// check that a user has been found
 	if (users.length < 1) {
@@ -248,8 +273,15 @@ export const listUsers = async (req: RequestWithToken, res: Response) => {
 		return res.status(404).json(json)
 	}
 
-	console.log(users[0])
-	return res.status(200).json({ users })
+	const filteredUserInfo = users.map(u => {
+		delete u.passwordHash
+		return u
+	})
+	const json: ResponseFormat = {
+		error: null,
+		data: filteredUserInfo,
+	}
+	return res.status(200).json(json)
 }
 
 // update user scope. Requires admin.
@@ -272,6 +304,8 @@ export const updateScope = async (req: RequestWithToken, res: Response) => {
 
 	// extract the user info from the array
 	const user = users[0]
+
+	
 
 	// Check the requested scope, and if it's admin, create admin combined rights
 	try {
@@ -299,4 +333,28 @@ export const updateScope = async (req: RequestWithToken, res: Response) => {
 		}
 		return res.status(400).json(json)
 	}
+}
+
+
+export const refreshToken = async (req: RequestWithToken, res: Response) => {
+
+	const data = {
+		name: req.token.name,
+		email: req.token.email,
+		scopes: req.token.scopes,
+		// 24-hour expiry date
+		iat: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
+	}
+
+	const token = jwt.sign(data, secret, {
+		algorithm: "HS256",
+	})
+
+	const json: ResponseFormat = {
+		error: null,
+		data: `Bearer ` + token,
+	}
+	
+	return res.status(200).json(json)
+
 }

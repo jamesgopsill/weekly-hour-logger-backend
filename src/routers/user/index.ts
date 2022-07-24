@@ -30,6 +30,16 @@ const { validate } = new Validator({})
  *     responses:
  *       200:
  *         description: Returns a "world".
+ *         schema:
+ *           type: object
+ *           properties:
+ *             error:
+ *               type: string
+ *               nullable: true
+ *               description: "Displays an error if something went wrong."
+ *             data:
+ *               type: string
+ *               description: "Returns world"
  */
 router.get("/hello", hello)
 
@@ -38,9 +48,46 @@ router.get("/hello", hello)
  * /user/register:
  *   post:
  *     description: For registering one or more users. Requires authentication
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *       - in: header
+ *         name: authorization
+ *         description: A valid JWT token with admin scope.
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: body
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Returns success of the users have been added.
+ *         schema:
+ *           type: object
+ *           properties:
+ *             error:
+ *               type: string
+ *               nullable: true
+ *               description: "Displays an error if something went wrong."
+ *             data:
+ *               type: string
+ *               description: "Returns success"
+ *       400:
+ *         description: There was an error
  */
 router.post(
 	"/register",

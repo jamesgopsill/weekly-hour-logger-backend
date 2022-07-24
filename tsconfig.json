@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"outDir": "dist",
-		"incremental": false,
+		"incremental": true,
 		"rootDir": "src",
 		"experimentalDecorators": true,
 		"emitDecoratorMetadata": true,
@@ -9,7 +9,7 @@
 		"module": "ES2022",
 		"target": "ES2022",
 		"lib": [],
-		"moduleResolution": "node"
+		"moduleResolution": "node",
 	},
-	"exclude": ["__tests__", "(old) src"]
+	"exclude": ["__tests__"]
 }

@@ -1,12 +1,12 @@
 import Router from "express-promise-router"
 import { Validator } from "express-json-validator-middleware"
 import {
-	RegisterSchema,
-	LoginSchema,
-	UserUpdateSchema,
-	PasswordUpdateSchema,
-	ScopeSchema,
-} from "./schemas"
+	registerSchema,
+	loginSchema,
+	updateSchema,
+	passwordSchema,
+	scopeSchema,
+} from "./schema"
 import {
 	register,
 	hello,
@@ -15,6 +15,7 @@ import {
 	listUsers,
 	updatePassword,
 	updateScope,
+	refreshToken,
 } from "./fcns"
 import { authorize } from "../../middleware"
 import { User, UserScopes } from "../../entities"
@@ -23,101 +24,61 @@ const router = Router()
 const { validate } = new Validator({})
 
 /**
- * @openapi
- * /user/hello:
- *   get:
- *     description: A simple hello test endpoint
- *     responses:
- *       200:
- *         description: Returns a "world".
+ * /user/hello
  */
 router.get("/hello", hello)
 
 /**
- * @openapi
- * /user/register:
- *   post:
- *     description: For registering one or more users. Requires authentication
- *     responses:
- *       200:
- *         description: Returns success of the users have been added.
+ * /user/register
  */
 router.post(
 	"/register",
-	[authorize([UserScopes.ADMIN]), validate({ body: RegisterSchema })],
+	[authorize([UserScopes.ADMIN]), validate({ body: registerSchema })],
 	register
 )
 
 /**
- * @openapi
- * /user/updateUser:
- *   patch:
- *     description: To update user name, email, or group. Requires authentication.
- *     responses:
- *       200:
- *         description: Returns success of the user has been updated.
+ * /user/login
  */
-// Login a user
-router.post("/login", validate({ body: LoginSchema }), login)
-
-// Routes TODO
-// perform a token check
-// router.get("/token")
+router.post("/login", validate({ body: loginSchema }), login)
 
 /**
- * @openapi
- * /user/updateUser:
- *   patch:
- *     description: To update user name, email, or group. Requires authentication.
- *     responses:
- *       200:
- *         description: Returns success of the user has been updated.
+ * /user/update
  */
 router.patch(
-	"/updateUser",
-	[authorize([UserScopes.ADMIN]), validate({ body: UserUpdateSchema })],
+	"/update",
+	[authorize([UserScopes.ADMIN]), validate({ body: updateSchema })],
 	updateUser
 )
 
 /**
- * @openapi
- * /user/list:
- *   patch:
- *     description: Retrieves all users in the database. Requires admin.
- *     responses:
- *       200:
- *         description: Returns user list. Password hashes have been removed.
+ * /user/list
  */
 router.get("/list", authorize([UserScopes.ADMIN]), listUsers)
 
 /**
- * @openapi
- * /user/updatePassword:
- *   patch:
- *     description: Updates user password. Users are able to do this themselves.
- *     responses:
- *       200:
- *         description: Returns success of the user password being updated.
+ * /user/password
  */
 router.patch(
-	"/updatePassword",
-	[validate({ body: PasswordUpdateSchema })],
+	"/password",
+	[
+		authorize([UserScopes.ADMIN, UserScopes.USER]),
+		validate({ body: passwordSchema }),
+	],
 	updatePassword
 )
 
 /**
- * @openapi
- * /user/updateScope:
- *   patch:
- *     description: To update user scopes. Requires admin.
- *     responses:
- *       200:
- *         description: Returns success of the user scope being updated.
+ * /user/scopes
  */
 router.patch(
-	"/updateScope",
-	[authorize([UserScopes.ADMIN]), validate({ body: ScopeSchema })],
+	"/scopes",
+	[authorize([UserScopes.ADMIN]), validate({ body: scopeSchema })],
 	updateScope
 )
+
+// Routes TODO
+// refresh a token
+router.post("/refresh-token", [authorize([UserScopes.USER])], refreshToken)
 
 export const UserRouter = router

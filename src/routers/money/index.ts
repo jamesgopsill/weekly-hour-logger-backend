@@ -1,66 +1,33 @@
 import Router from "express-promise-router"
 import { Validator } from "express-json-validator-middleware"
-import { 
-	SendMoneySchema,
-	ListMoneySchema,
-
-} from "./schemas"
-import { 
-    hello,
-    sendMoney,
-	updateMoney,
-	listMoney,
-	listAllMoney
-} from "./fcns"
+import { SendMoneySchema, ListMoneySchema } from "./schema"
+import { hello, sendMoney, updateMoney, listMoney, listAllMoney } from "./fcns"
 import { authorize } from "../../middleware"
-import { User, UserScopes, Money } from "../../entities"
+import { UserScopes } from "../../entities"
 
 const router = Router()
 const { validate } = new Validator({})
 
 /**
- * @openapi
- * /money/hello:
- *   get:
- *     description: A simple hello test endpoint
- *     responses:
- *       200:
- *         description: Returns a "world".
+ * /money/hello
  */
- router.get("/hello", hello)
+router.get("/hello", hello)
 
-// TODO
 /**
- * @openapi
- * /money/sendMoney:
- *   get:
- *     description: Creates an entry for money distribution in a given week. 
- * 		Only one entry allowed per week number.
- * 		Calculates the week number based on date of entry.
- *     responses:
- *       200:
- *         description: Returns success of the data entry being created
+ * /money/send-money
  */
 router.post(
-	"/sendMoney",
-	[validate({ body: SendMoneySchema })],
+	"/send",
+	[authorize([UserScopes.USER]), validate({ body: SendMoneySchema })],
 	sendMoney
 )
 
 /**
- * @openapi
- * /money/updateMoney:
- *   get:
- *     description: Updates an entry for money distribution in a given week. 
- * 		Only one entry allowed per week number.
- * 		Calculates the week number based on date of entry.
- *     responses:
- *       200:
- *         description: Returns success of the data entry being updated
+ * /money/update-money:
  */
 router.patch(
-	"/updateMoney",
-	[validate({ body: SendMoneySchema })],
+	"/update",
+	[authorize([UserScopes.USER]), validate({ body: SendMoneySchema })],
 	updateMoney
 )
 
@@ -74,9 +41,10 @@ router.patch(
  *         description: Returns list of entries
  */
 router.get(
-	"/listMoney", 
-	[validate({ body: ListMoneySchema })],
-	listMoney)
+	"/list",
+	[authorize([UserScopes.USER]), validate({ body: ListMoneySchema })],
+	listMoney
+)
 
 /**
  * @openapi
@@ -87,10 +55,6 @@ router.get(
  *       200:
  *         description: Returns list of entries
  */
- router.get(
-	"/listAllMoney", 
-	authorize([UserScopes.ADMIN]),
-	listAllMoney)
-
+router.get("/list-all", authorize([UserScopes.ADMIN]), listAllMoney)
 
 export const MoneyRouter = router

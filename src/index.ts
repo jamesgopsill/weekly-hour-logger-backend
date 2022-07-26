@@ -4,23 +4,11 @@ import { UserRouter, MoneyRouter } from "./routers"
 import { ValidationError } from "express-json-validator-middleware"
 import { orm } from "./entities"
 import swaggerUi from "swagger-ui-express"
-import swaggerJSDoc from "swagger-jsdoc"
+import { combinedSchema } from "./schema-utils/combined-schema"
 
 export { orm, UserScopes } from "./entities"
 export * from "./routers/user/interfaces"
 export * from "./routers/money/interfaces"
-
-const swaggerOptions = {
-	swaggerDefinition: {
-		info: {
-			title: "Gopsill and Sniders Api", // Title (required)
-			version: "0.1.0", // Version (required)
-		},
-	},
-	apis: ["./**/*.js"], // Path to the API docs
-}
-const swaggerSpec = swaggerJSDoc(swaggerOptions)
-console.log(swaggerSpec)
 
 export const api = express()
 
@@ -28,7 +16,7 @@ api.use(express.json())
 api.use(cors())
 
 api.use("/user", UserRouter)
-api.use("/money", MoneyRouter) // ## added this ##
+api.use("/money", MoneyRouter)
 
 // Covers the return of any validation errors
 api.use((error: any, req: Request, res: Response, next: any) => {
@@ -45,12 +33,12 @@ api.use((error: any, req: Request, res: Response, next: any) => {
 	}
 })
 
-api.get("/api-docs.json", function (req: Request, res: Response) {
+api.get("/docs.json", function (req: Request, res: Response) {
 	res.setHeader("Content-Type", "application/json")
-	res.send(swaggerSpec)
+	res.send(combinedSchema)
 })
 
-api.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec))
+api.use("/docs", swaggerUi.serve, swaggerUi.setup(combinedSchema))
 
 const port = process.env.PORT || 3000
 

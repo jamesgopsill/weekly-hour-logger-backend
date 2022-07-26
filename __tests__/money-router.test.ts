@@ -1,13 +1,6 @@
-import {
-	api,
-	server,
-	orm,
-    SendMoneyArgs,
-    ListMoneyArgs
-
-} from "../src"
+import { api, server, orm, SendMoneyArgs, ListMoneyArgs } from "../src"
 import supertest from "supertest"
-import { validAdminToken } from "./tokens"
+import { validAdminToken, validUserToken } from "./tokens"
 
 beforeAll(async () => {
 	// initialise the app containing the api and orm connections
@@ -33,22 +26,21 @@ test("GET /money/hello", async () => {
 		})
 })
 
-test("POST /money/sendMoney - no previous entry", async () => {
-	const args: SendMoneyArgs = 
-		{
-            group: 1,
-            date: "Tue Jul 26 2022 08:48:28 GMT+0100 (British Summer Time)",
-            userOneMoney: 100,
-            userTwoMoney: 100,
-            userThreeMoney: 100,
-            userFourMoney: 100,
-            userFiveMoney: 0,
-		}
-	
+test("POST /money/send - no previous entry", async () => {
+	const args: SendMoneyArgs = {
+		group: 1,
+		date: "Tue Jul 26 2022 08:48:28 GMT+0100 (British Summer Time)",
+		userOneMoney: 100,
+		userTwoMoney: 100,
+		userThreeMoney: 100,
+		userFourMoney: 100,
+		userFiveMoney: 0,
+	}
+
 	await supertest(api)
-		.post("/money/sendMoney")
+		.post("/money/send")
 		.set("Content-Type", "application/json")
-		// .set("authorization", `Bearer ${validAdminToken}`)
+		.set("authorization", `Bearer ${validUserToken}`)
 		.send(args)
 		.expect(200)
 		.then((res) => {
@@ -56,22 +48,21 @@ test("POST /money/sendMoney - no previous entry", async () => {
 		})
 })
 
-test("POST /money/sendMoney - no previous entry [same group, different week]", async () => {
-	const args: SendMoneyArgs = 
-		{
-            group: 1,
-            date: "Tue Aug 2 2022 08:48:28 GMT+0100 (British Summer Time)",
-            userOneMoney: 100,
-            userTwoMoney: 100,
-            userThreeMoney: 100,
-            userFourMoney: 100,
-            userFiveMoney: 0,
-		}
-	
+test("POST /money/send - no previous entry [same group, different week]", async () => {
+	const args: SendMoneyArgs = {
+		group: 1,
+		date: "Tue Aug 2 2022 08:48:28 GMT+0100 (British Summer Time)",
+		userOneMoney: 100,
+		userTwoMoney: 100,
+		userThreeMoney: 100,
+		userFourMoney: 100,
+		userFiveMoney: 0,
+	}
+
 	await supertest(api)
-		.post("/money/sendMoney")
+		.post("/money/send")
 		.set("Content-Type", "application/json")
-		// .set("authorization", `Bearer ${validAdminToken}`)
+		.set("authorization", `Bearer ${validUserToken}`)
 		.send(args)
 		.expect(200)
 		.then((res) => {
@@ -79,22 +70,21 @@ test("POST /money/sendMoney - no previous entry [same group, different week]", a
 		})
 })
 
-test("POST /money/sendMoney - previous entry exists", async () => {
-	const args: SendMoneyArgs = 
-		{
-            group: 1,
-            date: "Wed Jul 27 2022 08:48:28 GMT+0100 (British Summer Time)",
-            userOneMoney: 100,
-            userTwoMoney: 100,
-            userThreeMoney: 100,
-            userFourMoney: 100,
-            userFiveMoney: 0,
-		}
-	
+test("POST /money/send - previous entry exists", async () => {
+	const args: SendMoneyArgs = {
+		group: 1,
+		date: "Wed Jul 27 2022 08:48:28 GMT+0100 (British Summer Time)",
+		userOneMoney: 100,
+		userTwoMoney: 100,
+		userThreeMoney: 100,
+		userFourMoney: 100,
+		userFiveMoney: 0,
+	}
+
 	await supertest(api)
-		.post("/money/sendMoney")
+		.post("/money/send")
 		.set("Content-Type", "application/json")
-		// .set("authorization", `Bearer ${validAdminToken}`)
+		.set("authorization", `Bearer ${validUserToken}`)
 		.send(args)
 		.expect(400)
 		.then((res) => {
@@ -102,22 +92,21 @@ test("POST /money/sendMoney - previous entry exists", async () => {
 		})
 })
 
-test("PATCH /money/updateMoney - previous entry exists", async () => {
-	const args: SendMoneyArgs = 
-		{
-            group: 1,
-            date: "Wed Jul 27 2022 08:48:28 GMT+0100 (British Summer Time)",
-            userOneMoney: 250,
-            userTwoMoney: 50,
-            userThreeMoney: 50,
-            userFourMoney: 50,
-            userFiveMoney: 0,
-		}
-	
+test("PATCH /money/update - previous entry exists", async () => {
+	const args: SendMoneyArgs = {
+		group: 1,
+		date: "Wed Jul 27 2022 08:48:28 GMT+0100 (British Summer Time)",
+		userOneMoney: 250,
+		userTwoMoney: 50,
+		userThreeMoney: 50,
+		userFourMoney: 50,
+		userFiveMoney: 0,
+	}
+
 	await supertest(api)
-		.patch("/money/updateMoney")
+		.patch("/money/update")
 		.set("Content-Type", "application/json")
-		// .set("authorization", `Bearer ${validAdminToken}`)
+		.set("authorization", `Bearer ${validUserToken}`)
 		.send(args)
 		.expect(200)
 		.then((res) => {
@@ -125,22 +114,21 @@ test("PATCH /money/updateMoney - previous entry exists", async () => {
 		})
 })
 
-test("PATCH /money/updateMoney - no previous entry", async () => {
-	const args: SendMoneyArgs = 
-		{
-            group: 2,
-            date: "Wed Jul 27 2022 08:48:28 GMT+0100 (British Summer Time)",
-            userOneMoney: 250,
-            userTwoMoney: 50,
-            userThreeMoney: 50,
-            userFourMoney: 50,
-            userFiveMoney: 0,
-		}
-	
+test("PATCH /money/update - no previous entry", async () => {
+	const args: SendMoneyArgs = {
+		group: 2,
+		date: "Wed Jul 27 2022 08:48:28 GMT+0100 (British Summer Time)",
+		userOneMoney: 250,
+		userTwoMoney: 50,
+		userThreeMoney: 50,
+		userFourMoney: 50,
+		userFiveMoney: 0,
+	}
+
 	await supertest(api)
-		.patch("/money/updateMoney")
+		.patch("/money/update")
 		.set("Content-Type", "application/json")
-		// .set("authorization", `Bearer ${validAdminToken}`)
+		.set("authorization", `Bearer ${validUserToken}`)
 		.send(args)
 		.expect(404)
 		.then((res) => {
@@ -148,16 +136,15 @@ test("PATCH /money/updateMoney - no previous entry", async () => {
 		})
 })
 
-test("LIST /money/listMoney", async () => {
-	const args: ListMoneyArgs = 
-		{
-            group: 1,
-		}
-	
+test("LIST /money/list", async () => {
+	const args: ListMoneyArgs = {
+		group: 1,
+	}
+
 	await supertest(api)
-		.get("/money/listMoney")
+		.get("/money/list")
 		.set("Content-Type", "application/json")
-		// .set("authorization", `Bearer ${validAdminToken}`)
+		.set("authorization", `Bearer ${validUserToken}`)
 		.send(args)
 		.expect(200)
 		.then((res) => {
@@ -165,16 +152,15 @@ test("LIST /money/listMoney", async () => {
 		})
 })
 
-test("GET /money/listMoney - no previous entries for that group", async () => {
-	const args: ListMoneyArgs = 
-		{
-            group: 3,
-		}
-	
+test("GET /money/list - no previous entries for that group", async () => {
+	const args: ListMoneyArgs = {
+		group: 3,
+	}
+
 	await supertest(api)
-		.get("/money/listMoney")
+		.get("/money/list")
 		.set("Content-Type", "application/json")
-		// .set("authorization", `Bearer ${validAdminToken}`)
+		.set("authorization", `Bearer ${validUserToken}`)
 		.send(args)
 		.expect(400)
 		.then((res) => {
@@ -182,9 +168,9 @@ test("GET /money/listMoney - no previous entries for that group", async () => {
 		})
 })
 
-test("GET /money/listAllMoney", async () => {
+test("GET /money/list-all", async () => {
 	await supertest(api)
-		.get("/money/listAllMoney")
+		.get("/money/list-all")
 		.set("Content-Type", "application/json")
 		.set("authorization", `Bearer ${validAdminToken}`)
 		.send()

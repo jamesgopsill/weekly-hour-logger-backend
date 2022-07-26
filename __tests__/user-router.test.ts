@@ -50,7 +50,7 @@ test("POST /user/register - valid", async () => {
 		.send(args)
 		.expect(200)
 		.then((res) => {
-			console.log(res.text)
+			//console.log(res.text)
 		})
 })
 
@@ -67,6 +67,9 @@ test("POST /user/register - no token", async () => {
 		.set("Content-Type", "application/json")
 		.send(args)
 		.expect(400)
+		.then((res) => {
+			//console.log(res.text)
+		})
 })
 
 test("POST /user/login", async () => {
@@ -80,11 +83,11 @@ test("POST /user/login", async () => {
 		.send(args)
 		.expect(200)
 		.then((res) => {
-			console.log(res.text)
+			//console.log(res.text)
 		})
 })
 
-test("PATCH /user/updateUser -- admin", async () => {
+test("PATCH /user/update -- admin", async () => {
 	const args: UserUpdateArgs = {
 		name: "Test User",
 		email: "test@test.com",
@@ -92,17 +95,17 @@ test("PATCH /user/updateUser -- admin", async () => {
 	}
 
 	await supertest(api)
-		.patch("/user/updateUser")
+		.patch("/user/update")
 		.set("Content-Type", "application/json")
 		.set("authorization", `Bearer ${validAdminToken}`)
 		.send(args)
 		.expect(200)
 		.then((res) => {
-			console.log(res.text)
+			//console.log(res.text)
 		})
 })
 
-test("PATCH /user/updatePassword", async () => {
+test("PATCH /user/password", async () => {
 	const args: PasswordUpdateArgs = {
 		email: "test@test.com",
 		oldPassword: "test",
@@ -110,30 +113,30 @@ test("PATCH /user/updatePassword", async () => {
 	}
 
 	await supertest(api)
-		.patch("/user/updatePassword")
+		.patch("/user/password")
 		.set("Content-Type", "application/json")
 		.set("authorization", `Bearer ${validAdminToken}`)
 		.send(args)
 		.expect(200)
 		.then((res) => {
-			console.log(res.text)
+			//console.log(res.text)
 		})
 })
 
-test("PATCH /user/updateScope", async () => {
+test("PATCH /user/scopes", async () => {
 	const args: ScopeArgs = {
 		email: "test@test.com",
 		scope: "user",
 	}
 
 	await supertest(api)
-		.patch("/user/updateScope")
+		.patch("/user/scopes")
 		.set("Content-Type", "application/json")
 		.set("authorization", `Bearer ${validAdminToken}`)
 		.send(args)
 		.expect(200)
 		.then((res) => {
-			console.log(res.text)
+			//console.log(res.text)
 		})
 })
 
@@ -145,6 +148,18 @@ test("GET /user/list", async () => {
 		.send()
 		.expect(200)
 		.then((res) => {
-			console.log(res.text)
+			//console.log(res.text)
+		})
+})
+
+test("POST /user/refresh-token", async () => {
+	await supertest(api)
+		.post("/user/refresh-token")
+		.set("Content-Type", "application/json")
+		.set("authorization", `Bearer ${validAdminToken}`)
+		.send()
+		.expect(200)
+		.then((res) => {
+			//console.log(res.text)
 		})
 })

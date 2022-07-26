@@ -6,10 +6,12 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon -L --watch src --ext ts --exec pnpm start",
-    "start": "node utils/clean_dist.js && tsc && node --experimental-specifier-resolution=node dist/index.js",
+    "start": "pnpm clean && tsc && node --experimental-specifier-resolution=node dist/index.js",
+    "clean": "node utils/clean_dist.js",
     "serve": "node dist/index.js",
     "build": "tsc",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --no-cache",
+    "test-verbose": "node --experimental-vm-modules node_modules/jest/bin/jest.js --no-cache --verbose",
     "format": "prettier --write src/**/* && prettier --write __tests__/**/* "
   },
   "keywords": [],
@@ -24,7 +26,6 @@
     "@types/jsonwebtoken": "^8.5.8",
     "@types/node": "^18.0.0",
     "@types/supertest": "^2.0.12",
-    "@types/swagger-jsdoc": "^6.0.1",
     "@types/swagger-ui-express": "^4.1.3",
     "@types/uuid": "^8.3.4",
     "jest": "^28.1.2",
@@ -46,7 +47,6 @@
     "express-promise-router": "^4.1.1",
     "jsonwebtoken": "^8.5.1",
     "openapi-types": "^12.0.0",
-    "swagger-jsdoc": "^6.2.1",
     "swagger-ui-express": "^4.5.0",
     "uuid": "^8.3.2"
   }

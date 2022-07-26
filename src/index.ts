@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express"
 import cors from "cors"
-import { UserRouter } from "./routers"
+import { UserRouter, MoneyRouter } from "./routers"
 import { ValidationError } from "express-json-validator-middleware"
 import { orm } from "./entities"
 import swaggerUi from "swagger-ui-express"
@@ -8,6 +8,7 @@ import { combinedSchema } from "./schema-utils/combined-schema"
 
 export { orm, UserScopes } from "./entities"
 export * from "./routers/user/interfaces"
+export * from "./routers/money/interfaces"
 
 export const api = express()
 
@@ -15,6 +16,7 @@ api.use(express.json())
 api.use(cors())
 
 api.use("/user", UserRouter)
+api.use("/money", MoneyRouter) // ## added this ##
 
 // Covers the return of any validation errors
 api.use((error: any, req: Request, res: Response, next: any) => {

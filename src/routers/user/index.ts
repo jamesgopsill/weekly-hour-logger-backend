@@ -18,7 +18,7 @@ import {
 	refreshToken
 } from "./fcns"
 import { authorize } from "../../middleware"
-import { UserScopes } from "../../entities"
+import { User, UserScopes } from "../../entities"
 
 const router = Router()
 const { validate } = new Validator({})

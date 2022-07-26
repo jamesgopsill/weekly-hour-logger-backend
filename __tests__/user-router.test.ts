@@ -143,7 +143,7 @@ test("GET /user/list", async () => {
 		.set("Content-Type", "application/json")
 		.set("authorization", `Bearer ${validAdminToken}`)
 		.send()
-		// .expect(200)
+		.expect(200)
 		.then((res) => {
 			console.log(res.text)
 		})

@@ -17,7 +17,7 @@ import {
 	updateScope,
 } from "./fcns"
 import { authorize } from "../../middleware"
-import { UserScopes } from "../../entities"
+import { User, UserScopes } from "../../entities"
 
 const router = Router()
 const { validate } = new Validator({})
@@ -48,6 +48,15 @@ router.post(
 	register
 )
 
+/**
+ * @openapi
+ * /user/updateUser:
+ *   patch:
+ *     description: To update user name, email, or group. Requires authentication.
+ *     responses:
+ *       200:
+ *         description: Returns success of the user has been updated.
+ */
 // Login a user
 router.post("/login", validate({ body: LoginSchema }), login)
 
@@ -70,17 +79,41 @@ router.patch(
 	updateUser
 )
 
-// Get a list of users
+/**
+ * @openapi
+ * /user/list:
+ *   patch:
+ *     description: Retrieves all users in the database. Requires admin.
+ *     responses:
+ *       200:
+ *         description: Returns user list. Password hashes have been removed.
+ */
 router.get("/list", authorize([UserScopes.ADMIN]), listUsers)
 
-// update user password
+/**
+ * @openapi
+ * /user/updatePassword:
+ *   patch:
+ *     description: Updates user password. Users are able to do this themselves.
+ *     responses:
+ *       200:
+ *         description: Returns success of the user password being updated.
+ */
 router.patch(
 	"/updatePassword",
-	[authorize([UserScopes.ADMIN]), validate({ body: PasswordUpdateSchema })],
+	[validate({ body: PasswordUpdateSchema })],
 	updatePassword
 )
 
-// update user scopes
+/**
+ * @openapi
+ * /user/updateScope:
+ *   patch:
+ *     description: To update user scopes. Requires admin.
+ *     responses:
+ *       200:
+ *         description: Returns success of the user scope being updated.
+ */
 router.patch(
 	"/updateScope",
 	[authorize([UserScopes.ADMIN]), validate({ body: ScopeSchema })],

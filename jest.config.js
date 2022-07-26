@@ -4,6 +4,7 @@ export default {
 	verbose: true,
 	testRegex: "\.test\.ts",
 	extensionsToTreatAsEsm: [".ts"],
+	maxWorkers: 1,
 	globals: {
 		"ts-jest": {
 			useESM: true,

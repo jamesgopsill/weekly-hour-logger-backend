@@ -1,7 +1,7 @@
 export default {
 	preset: "ts-jest",
 	testEnvironment: "node",
-	verbose: true,
+	verbose: false,
 	testRegex: "\.test\.ts",
 	extensionsToTreatAsEsm: [".ts"],
 	maxWorkers: 1,

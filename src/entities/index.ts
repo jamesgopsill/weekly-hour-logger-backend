@@ -16,7 +16,7 @@ const dbPath = __dirname + "/../../db/" + dbName
 export const orm = await MikroORM.init({
 	dbName: dbPath,
 	type: "sqlite",
-	entities: [User, Money], 
+	entities: [User, Money],
 	debug: false,
 	allowGlobalContext: true,
 })

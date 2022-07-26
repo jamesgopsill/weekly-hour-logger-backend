@@ -13,3 +13,14 @@ const adminDetails = {
 export const validAdminToken = jwt.sign(adminDetails, secret, {
 	algorithm: "HS256",
 })
+
+const userDetails = {
+	name: "user",
+	email: "user@test.com",
+	scopes: [UserScopes.USER],
+	iat: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
+}
+
+export const validUserToken = jwt.sign(userDetails, secret, {
+	algorithm: "HS256",
+})

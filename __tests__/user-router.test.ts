@@ -50,7 +50,7 @@ test("POST /user/register - valid", async () => {
 		.send(args)
 		.expect(200)
 		.then((res) => {
-			console.log(res.text)
+			//console.log(res.text)
 		})
 })
 
@@ -68,7 +68,7 @@ test("POST /user/register - no token", async () => {
 		.send(args)
 		.expect(400)
 		.then((res) => {
-			console.log(res.text)
+			//console.log(res.text)
 		})
 })
 
@@ -83,7 +83,7 @@ test("POST /user/login", async () => {
 		.send(args)
 		.expect(200)
 		.then((res) => {
-			console.log(res.text)
+			//console.log(res.text)
 		})
 })
 
@@ -101,7 +101,7 @@ test("PATCH /user/update -- admin", async () => {
 		.send(args)
 		.expect(200)
 		.then((res) => {
-			console.log(res.text)
+			//console.log(res.text)
 		})
 })
 
@@ -119,7 +119,7 @@ test("PATCH /user/password", async () => {
 		.send(args)
 		.expect(200)
 		.then((res) => {
-			console.log(res.text)
+			//console.log(res.text)
 		})
 })
 
@@ -136,7 +136,7 @@ test("PATCH /user/scopes", async () => {
 		.send(args)
 		.expect(200)
 		.then((res) => {
-			console.log(res.text)
+			//console.log(res.text)
 		})
 })
 
@@ -148,10 +148,9 @@ test("GET /user/list", async () => {
 		.send()
 		.expect(200)
 		.then((res) => {
-			console.log(res.text)
+			//console.log(res.text)
 		})
 })
-
 
 test("POST /user/refresh-token", async () => {
 	await supertest(api)
@@ -161,6 +160,6 @@ test("POST /user/refresh-token", async () => {
 		.send()
 		.expect(200)
 		.then((res) => {
-			console.log(res.text)
+			//console.log(res.text)
 		})
 })

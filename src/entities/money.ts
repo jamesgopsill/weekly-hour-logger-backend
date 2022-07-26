@@ -11,7 +11,7 @@ export class Money {
 	@Property()
 	group!: number
 
-    @Property()
+	@Property()
 	date!: string
 
 	@Property()
@@ -20,15 +20,15 @@ export class Money {
 	@Property()
 	userOneMoney!: number
 
-    @Property()
+	@Property()
 	userTwoMoney!: number
 
-    @Property()
+	@Property()
 	userThreeMoney!: number
 
-    @Property()
+	@Property()
 	userFourMoney!: number
 
-    @Property()
+	@Property()
 	userFiveMoney: number = 0
 }

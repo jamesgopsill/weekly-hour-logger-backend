@@ -16,7 +16,7 @@ api.use(express.json())
 api.use(cors())
 
 api.use("/user", UserRouter)
-api.use("/money", MoneyRouter) // ## added this ##
+api.use("/money", MoneyRouter)
 
 // Covers the return of any validation errors
 api.use((error: any, req: Request, res: Response, next: any) => {

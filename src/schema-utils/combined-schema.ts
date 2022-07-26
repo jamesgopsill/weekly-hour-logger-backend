@@ -1,3 +1,4 @@
+import { moneyRouterSchema } from "../routers/money/schema"
 import { userRouterSchema } from "../routers/user/schema"
 
 const info = {
@@ -12,6 +13,7 @@ export const combinedSchema = {
 	...info,
 	paths: {
 		...userRouterSchema,
+		...moneyRouterSchema,
 	},
 	definitions: {},
 	responses: {},

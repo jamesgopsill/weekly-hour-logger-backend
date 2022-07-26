@@ -237,7 +237,6 @@ export const updatePassword = async (req: RequestWithToken, res: Response) => {
 // get a list of all users in the database
 export const listUsers = async (req: RequestWithToken, res: Response) => {
 	const users = await userRepo.find({ scopes: [UserScopes.USER] })
-	console.log("I got here!")
 
 	// check that a user has been found
 	if (users.length < 1) {
@@ -248,7 +247,11 @@ export const listUsers = async (req: RequestWithToken, res: Response) => {
 		return res.status(404).json(json)
 	}
 
-	console.log(users[0])
+	// Replaces the pw hash with an empty string
+	for (const user of users) {
+		user.passwordHash = ""
+	}
+
 	return res.status(200).json({ users })
 }
 

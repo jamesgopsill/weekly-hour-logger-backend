@@ -7,7 +7,7 @@ import {
 	ScopeArgs,
 } from "./interfaces"
 import { ResponseFormat } from "../interfaces"
-import bcrypt from "bcrypt"
+import crypto from "crypto"
 import { User, UserScopes, userRepo } from "../../entities"
 import jwt from "jsonwebtoken"
 import { RequestWithToken } from "../../middleware/interfaces"
@@ -66,12 +66,19 @@ export const register = async (req: RequestWithToken, res: Response) => {
 	// Now loop through again and add them to the database
 	for (const userToRegister of body) {
 		try {
-			const saltRounds = 10
-			const hash = bcrypt.hashSync(userToRegister.password, saltRounds)
+			const salt = crypto.randomBytes(16)
+			const hashedPassword = crypto.pbkdf2Sync(
+				userToRegister.password,
+				salt,
+				310000,
+				32,
+				"sha256"
+			)
 			const user = new User()
 			user.name = userToRegister.name
 			user.email = userToRegister.email
-			user.passwordHash = hash
+			user.hashedPassword = hashedPassword
+			user.salt = salt
 			await userRepo.persistAndFlush(user)
 		} catch (e: any) {
 			console.log("Error creating user")
@@ -107,7 +114,14 @@ export const login = async (req: Request, res: Response) => {
 	const user = users[0]
 
 	try {
-		if (!bcrypt.compareSync(body.password, user.passwordHash)) {
+		const hashedPassword = crypto.pbkdf2Sync(
+			body.password,
+			user.salt,
+			310000,
+			32,
+			"sha256"
+		)
+		if (!crypto.timingSafeEqual(user.hashedPassword, hashedPassword)) {
 			const json: ResponseFormat = {
 				error: "Passwords do not match",
 				data: null,
@@ -232,18 +246,33 @@ export const updatePassword = async (req: RequestWithToken, res: Response) => {
 
 	// check the old password matches
 	try {
-		if (!bcrypt.compareSync(body.oldPassword, user.passwordHash)) {
+		const hashedOldPassword = crypto.pbkdf2Sync(
+			body.oldPassword,
+			user.salt,
+			310000,
+			32,
+			"sha256"
+		)
+		if (!crypto.timingSafeEqual(user.hashedPassword, hashedOldPassword)) {
 			const json: ResponseFormat = {
 				error: "Passwords do not match",
 				data: null,
 			}
-			return res.status(400).json(json)
+			return res.status(404).json(json)
 		}
 
-		// update the new password
-		const saltRounds = 10
-		const hash = bcrypt.hashSync(body.newPassword, saltRounds)
-		user.passwordHash = hash
+		const salt = crypto.randomBytes(16)
+		const hashedPassword = crypto.pbkdf2Sync(
+			body.newPassword,
+			salt,
+			310000,
+			32,
+			"sha256"
+		)
+
+		user.hashedPassword = hashedPassword
+		user.salt = salt
+
 		await userRepo.persistAndFlush(user)
 	} catch (e: any) {
 		console.log("Error updating password")
@@ -277,7 +306,8 @@ export const listUsers = async (req: RequestWithToken, res: Response) => {
 	}
 
 	const filteredUserInfo = users.map((u) => {
-		delete u.passwordHash
+		delete u.hashedPassword
+		delete u.salt
 		return u
 	})
 	const json: ResponseFormat = {

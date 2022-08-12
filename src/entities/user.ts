@@ -16,7 +16,10 @@ export class User {
 	group: string = ""
 
 	@Property()
-	passwordHash!: string
+	hashedPassword!: Buffer
+
+	@Property()
+	salt!: Buffer
 
 	@Property()
 	scopes: UserScopes[] = [UserScopes.USER]

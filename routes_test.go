@@ -217,7 +217,7 @@ func TestAddGroup(t *testing.T) {
 
 	mockRequest = `{
 		"name": "test group",
-		"emails": ["dbtest2@test.com"]
+		"emails": ["dbtest2@test.com", "dbtest3@test.com"]
 	}`
 	req, _ = http.NewRequest("POST", "/group/add-users", bytes.NewBufferString(mockRequest))
 	req.Header.Set("Authorization", response.Data)
@@ -227,4 +227,36 @@ func TestAddGroup(t *testing.T) {
 		log.Info().Msg(w.Body.String())
 	}
 	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestAddGroupUserAlreadyInGroup(t *testing.T) {
+	mockRequest := `{
+		"password": "test",
+		"email": "test@test.com"
+	}`
+	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
+	assert.NoError(t, err)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response loginResponse
+	err = json.NewDecoder(w.Body).Decode(&response)
+	assert.NoError(t, err)
+
+	mockRequest = `{
+		"name": "test group",
+		"emails": ["dbtest2@test.com"]
+	}`
+	req, _ = http.NewRequest("POST", "/group/add-users", bytes.NewBufferString(mockRequest))
+	req.Header.Set("Authorization", response.Data)
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code == http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
 }

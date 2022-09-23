@@ -32,6 +32,9 @@ func TestDB(t *testing.T) {
 		Users: users,
 	}
 
+	result = db.Connection.Create(&group)
+	assert.NoError(t, result.Error)
+
 	user = db.User{
 		Name:         "DB Test User 2",
 		Email:        "dbtest2@test.com",
@@ -42,7 +45,14 @@ func TestDB(t *testing.T) {
 	result = db.Connection.Create(&user)
 	assert.NoError(t, result.Error)
 
-	result = db.Connection.Create(&group)
+	user = db.User{
+		Name:         "DB Test User 3",
+		Email:        "dbtest3@test.com",
+		PasswordHash: "db_hash",
+		Scopes:       []string{"user", "admin"},
+	}
+
+	result = db.Connection.Create(&user)
 	assert.NoError(t, result.Error)
 
 	resource := &db.Resource{

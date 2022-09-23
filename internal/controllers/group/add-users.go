@@ -39,7 +39,7 @@ func AddUsers(c *gin.Context) {
 
 	// Retrieve the group
 	var group db.Group
-	groupResult := db.Connection.First(&group, "name=?", body.Name)
+	groupResult := db.Connection.Preload("Users").First(&group, "name=?", body.Name)
 
 	// check that the group exists
 	if groupResult.Error != nil {
@@ -50,6 +50,7 @@ func AddUsers(c *gin.Context) {
 		return
 	}
 
+	// check that the users aren't already in the group
 	// extract the users from the group
 	var users []db.User
 	users = group.Users

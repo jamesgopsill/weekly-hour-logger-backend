@@ -32,6 +32,16 @@ func TestDB(t *testing.T) {
 		Users: users,
 	}
 
+	user = db.User{
+		Name:         "DB Test User 2",
+		Email:        "dbtest2@test.com",
+		PasswordHash: "db_hash",
+		Scopes:       []string{"user", "admin"},
+	}
+
+	result = db.Connection.Create(&user)
+	assert.NoError(t, result.Error)
+
 	result = db.Connection.Create(&group)
 	assert.NoError(t, result.Error)
 

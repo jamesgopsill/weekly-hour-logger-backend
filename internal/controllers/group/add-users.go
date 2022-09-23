@@ -5,13 +5,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog/log"
 	// "github.com/google/uuid"
 )
 
 type addUsersGroupRequest struct {
-	Name   string   `json:"name" binding:"required"`
-	Emails []string `json:"emails" binding:"required"`
+	GroupName string   `json:"name" binding:"required"`
+	Emails    []string `json:"emails" binding:"required"`
 }
 
 // function to see if an element is contained within an array
@@ -39,7 +38,7 @@ func AddUsers(c *gin.Context) {
 
 	// Retrieve the group
 	var group db.Group
-	groupResult := db.Connection.Preload("Users").First(&group, "name=?", body.Name)
+	groupResult := db.Connection.Preload("Users").First(&group, "name=?", body.GroupName)
 
 	// check that the group exists
 	if groupResult.Error != nil {
@@ -84,7 +83,7 @@ func AddUsers(c *gin.Context) {
 		}
 
 		// if they do, add them to the user list for the group
-		log.Info().Msg("Adding user " + user.ID + " to group.")
+		// log.Info().Msg("Adding user " + user.ID + " to group.")
 		users = append(users, user)
 	}
 

@@ -5,13 +5,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog/log"
 	// "github.com/google/uuid"
 )
 
 type createGroupRequest struct {
-	Name   string   `json:"name" binding:"required"`
-	Emails []string `json:"emails" binding:"required"`
+	GroupName string   `json:"name" binding:"required"`
+	Emails    []string `json:"emails" binding:"required"`
 }
 
 func CreateGroup(c *gin.Context) {
@@ -29,7 +28,7 @@ func CreateGroup(c *gin.Context) {
 
 	// Check if the group exists
 	var group db.Group
-	res := db.Connection.First(&group, "name=?", body.Name)
+	res := db.Connection.First(&group, "name=?", body.GroupName)
 	if res.Error == nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": "Group already exists",
@@ -51,12 +50,12 @@ func CreateGroup(c *gin.Context) {
 			})
 			return
 		}
-		log.Info().Msg("Adding user " + user.ID + " to group.")
+		// log.Info().Msg("Adding user " + user.ID + " to group.")
 		users = append(users, user)
 	}
 
 	newGroup := db.Group{
-		Name:  body.Name,
+		Name:  body.GroupName,
 		Users: users,
 	}
 

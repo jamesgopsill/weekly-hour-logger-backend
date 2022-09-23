@@ -191,10 +191,42 @@ func TestCreateGroup(t *testing.T) {
 	req.Header.Set("Authorization", response.Data)
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
-	if w.Code == http.StatusOK {
+	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
 	}
 	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestCreateGroupAlreadyExists(t *testing.T) {
+	mockRequest := `{
+		"password": "test",
+		"email": "test@test.com"
+	}`
+	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
+	assert.NoError(t, err)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response loginResponse
+	err = json.NewDecoder(w.Body).Decode(&response)
+	assert.NoError(t, err)
+
+	mockRequest = `{
+		"name": "test group",
+		"emails": ["this_shouldnt_be_here@test.com"]
+	}`
+	req, _ = http.NewRequest("POST", "/group/create-group", bytes.NewBufferString(mockRequest))
+	req.Header.Set("Authorization", response.Data)
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code == http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
 }
 
 func TestAddGroup(t *testing.T) {
@@ -223,7 +255,7 @@ func TestAddGroup(t *testing.T) {
 	req.Header.Set("Authorization", response.Data)
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
-	if w.Code == http.StatusOK {
+	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
 	}
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -259,4 +291,37 @@ func TestAddGroupUserAlreadyInGroup(t *testing.T) {
 		log.Info().Msg(w.Body.String())
 	}
 	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+}
+
+// test remove user. Remove 'dbtest2@test.com' from 'test group'
+func TestRemoveGroup(t *testing.T) {
+	mockRequest := `{
+		"password": "test",
+		"email": "test@test.com"
+	}`
+	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
+	assert.NoError(t, err)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response loginResponse
+	err = json.NewDecoder(w.Body).Decode(&response)
+	assert.NoError(t, err)
+
+	mockRequest = `{
+		"name": "test group",
+		"emails": ["dbtest2@test.com"]
+	}`
+	req, _ = http.NewRequest("POST", "/group/remove-users", bytes.NewBufferString(mockRequest))
+	req.Header.Set("Authorization", response.Data)
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
 }

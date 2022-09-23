@@ -187,7 +187,7 @@ func TestCreateGroup(t *testing.T) {
 		"name": "test group",
 		"emails": ["test@test.com"]
 	}`
-	req, _ = http.NewRequest("POST", "/group", bytes.NewBufferString(mockRequest))
+	req, _ = http.NewRequest("POST", "/group/create-group", bytes.NewBufferString(mockRequest))
 	req.Header.Set("Authorization", response.Data)
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)

@@ -41,7 +41,7 @@ func Register(c *gin.Context) {
 
 	if body.Password != body.ConfirmPassword {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": "Emails do not match",
+			"error": "Passwords do not match",
 			"data":  nil,
 		})
 		return

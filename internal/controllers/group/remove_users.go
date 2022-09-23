@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	// "github.com/rs/zerolog/log"
+	"github.com/rs/zerolog/log"
 	// "github.com/google/uuid"
 )
 
@@ -34,7 +34,7 @@ func RemoveUsers(c *gin.Context) {
 		res := db.Connection.First(&user, "email=?", email)
 		if res.Error != nil {
 			c.JSON(http.StatusUnprocessableEntity, gin.H{
-				"error": "User does not exist",
+				"error": "User(s) do not exist",
 				"data":  nil,
 			})
 			return
@@ -55,27 +55,38 @@ func RemoveUsers(c *gin.Context) {
 	}
 
 	// extract the users from the group
-	var users []db.User
-	usersOriginal := group.Users
+	var users []db.User          // empty slice to add the not-removed users to
+	usersOriginal := group.Users // slice of the users previously in the group
+	var usersOriginalEmails []string
 
 	// for each user thats previously in the group
 	for _, user := range usersOriginal {
 
 		// extract their email
 		email := user.Email
+		usersOriginalEmails = append(usersOriginalEmails, email)
 
 		// see if their email is in the 'remove these people' list
 		res := contains(body.Emails, email)
 
-		// if it isn't, add them to the new group list
-		if !res {
-			users = append(users, user)
-		} else {
-			// else find the user entry for the removed person, and remove their group association
+		// if it is, remove their group ID
+		if res {
+			// find the user entry for the removed person, and remove their group association
 			var removeUser db.User
 			db.Connection.First(&removeUser, "email=?", email)
 			removeUser.GroupID = ""
 			db.Connection.Save(&removeUser)
+		} else {
+			// if they aren't on the remove list, add them to the new users list
+			users = append(users, user)
+		}
+	}
+
+	// Double check if there were any 'to-remove' people who weren't in the group
+	for _, email := range body.Emails {
+		res := contains(usersOriginalEmails, email)
+		if !res {
+			log.Info().Msg("WARNING: User email: " + email + " not in group in the first place.")
 		}
 	}
 

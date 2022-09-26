@@ -40,6 +40,7 @@ func initialiseApp(dbPath string, mode string) *gin.Engine {
 	r.Use(cors.New(config))
 
 	r.GET("/ping", pong)
+	r.GET("/user/list-all-users", user.ListAllUsers)
 	r.POST("/user/register", user.Register)
 	r.POST("/user/login", user.Login)
 	r.POST("/user/update", middleware.Authenticate(db.USER_SCOPE), user.Update)
@@ -50,7 +51,7 @@ func initialiseApp(dbPath string, mode string) *gin.Engine {
 	r.POST("/group/create-group", middleware.Authenticate(db.USER_SCOPE), group.CreateGroup)
 	r.POST("/group/add-users", middleware.Authenticate(db.USER_SCOPE), group.AddUsers)
 	r.POST("/group/remove-users", middleware.Authenticate(db.USER_SCOPE), group.RemoveUsers)
-	r.POST("/group/list-users", middleware.Authenticate(db.USER_SCOPE), group.ListUsers)
+	r.POST("/group/list-users-in-group", middleware.Authenticate(db.USER_SCOPE), group.ListUsersInGroup)
 
 	r.POST("/resource", middleware.Authenticate(db.USER_SCOPE), resource.Post)
 

@@ -12,7 +12,7 @@ type listUsersGroupRequest struct {
 	GroupName string `json:"name" binding:"required"`
 }
 
-func ListUsers(c *gin.Context) {
+func ListUsersInGroup(c *gin.Context) {
 
 	var body listUsersGroupRequest
 	var err error

@@ -416,3 +416,45 @@ func TestListGroupUsers(t *testing.T) {
 	}
 	assert.Equal(t, http.StatusOK, w.Code)
 }
+
+// create resource entry
+func TestAddResource(t *testing.T) {
+	mockRequest := `{
+		"password": "test",
+		"email": "test@test.com"
+	}`
+	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
+	assert.NoError(t, err)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response loginResponse
+	err = json.NewDecoder(w.Body).Decode(&response)
+	assert.NoError(t, err)
+
+	mockRequest = `{
+		"week": 7,
+		"value": 500,
+		"email": "test@test.com",
+		"name": "test group"
+	}`
+	req, _ = http.NewRequest("POST", "/resource/add-resource", bytes.NewBufferString(mockRequest))
+	req.Header.Set("Authorization", response.Data)
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+
+}
+
+// resource - add resource entry to a group
+
+// resource - add resource entry to a group - user not in group
+
+// resource - add resource entry to a group - entry already present; overwrite

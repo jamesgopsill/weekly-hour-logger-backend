@@ -417,6 +417,8 @@ func TestListGroupUsers(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
+// Delete group. Creates a group first, then kills it
+
 // create resource entry
 func TestAddResource(t *testing.T) {
 	mockRequest := `{
@@ -745,6 +747,74 @@ func TestDeleteResource(t *testing.T) {
 		"name": "test group"
 	}`
 	req, _ = http.NewRequest("POST", "/resource/delete-resource", bytes.NewBufferString(mockRequest))
+	req.Header.Set("Authorization", response.Data)
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+// Delete group: Deletes all resource entries from that group, and removes the link between group and user
+func TestDeleteGroup(t *testing.T) {
+	mockRequest := `{
+		"password": "test",
+		"email": "test@test.com"
+	}`
+	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
+	assert.NoError(t, err)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response loginResponse
+	err = json.NewDecoder(w.Body).Decode(&response)
+	assert.NoError(t, err)
+
+	mockRequest = `{
+		"name": "test group to delete",
+		"emails": ["dbtest4@test.com"]
+	}`
+	req, _ = http.NewRequest("POST", "/group/create-group", bytes.NewBufferString(mockRequest))
+	req.Header.Set("Authorization", response.Data)
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var res loginResponse
+	err = json.NewDecoder(w.Body).Decode(&res)
+	assert.NoError(t, err)
+
+	mockRequest = `{
+		"week": 7,
+		"value": 300,
+		"email": "dbtest4@test.com",
+		"name": "test group to delete"
+	}`
+	req, _ = http.NewRequest("POST", "/resource/add-resource", bytes.NewBufferString(mockRequest))
+	req.Header.Set("Authorization", response.Data)
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var res2 loginResponse
+	err = json.NewDecoder(w.Body).Decode(&res2)
+	assert.NoError(t, err)
+
+	mockRequest = `{
+		"name": "test group to delete"
+	}`
+	req, _ = http.NewRequest("POST", "/group/delete-group", bytes.NewBufferString(mockRequest))
 	req.Header.Set("Authorization", response.Data)
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)

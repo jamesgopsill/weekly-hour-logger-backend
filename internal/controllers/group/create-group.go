@@ -54,6 +54,8 @@ func CreateGroup(c *gin.Context) {
 		users = append(users, user)
 	}
 
+	// check if the user is already in another group
+
 	newGroup := db.Group{
 		Name:  body.GroupName,
 		Users: users,

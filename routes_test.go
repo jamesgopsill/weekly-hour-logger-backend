@@ -875,7 +875,7 @@ func TestListGroups(t *testing.T) {
 	req.Header.Set("Authorization", response.Data)
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
-	if w.Code == http.StatusOK {
+	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
 	}
 	assert.Equal(t, http.StatusOK, w.Code)

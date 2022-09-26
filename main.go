@@ -51,8 +51,10 @@ func initialiseApp(dbPath string, mode string) *gin.Engine {
 	r.POST("/group/create-group", middleware.Authenticate(db.USER_SCOPE), group.CreateGroup)
 	r.POST("/group/add-users", middleware.Authenticate(db.USER_SCOPE), group.AddUsers)
 	r.POST("/group/remove-users", middleware.Authenticate(db.USER_SCOPE), group.RemoveUsers)
-	r.POST("/group/list-users-in-group", middleware.Authenticate(db.USER_SCOPE), group.ListUsersInGroup)
+	r.GET("/group/list-users-in-group", middleware.Authenticate(db.USER_SCOPE), group.ListUsersInGroup)
 	r.POST("/group/delete-group", middleware.Authenticate(db.USER_SCOPE), group.DeleteGroup)
+	r.GET("/group/list-resource-in-group", middleware.Authenticate(db.USER_SCOPE), group.ListResourceInGroup)
+	r.GET("/group/list-groups", middleware.Authenticate(db.USER_SCOPE), group.ListGroups)
 
 	r.POST("/resource/add-resource", middleware.Authenticate(db.USER_SCOPE), resource.AddResource)
 	r.POST("/resource/update-resource", middleware.Authenticate(db.USER_SCOPE), resource.UpdateResource)

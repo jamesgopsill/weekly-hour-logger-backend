@@ -1,4 +1,4 @@
-package user
+package group
 
 import (
 	"jamesgopsill/resource-logger-backend/internal/db"
@@ -8,16 +8,15 @@ import (
 	// "github.com/google/uuid"
 )
 
-func ListAllUsers(c *gin.Context) {
+func ListGroups(c *gin.Context) {
 
 	// Retrieve the group
-	var users []db.User
-	groupResult := db.Connection.Find(&users)
+	var groups []db.Group
+	res := db.Connection.Find(&groups)
 
-	// check that users were found
-	if groupResult.Error != nil {
+	if res.Error != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": "Error, no results found",
+			"error": "No groups found",
 			"data":  nil,
 		})
 		return
@@ -26,6 +25,6 @@ func ListAllUsers(c *gin.Context) {
 	// pass success
 	c.JSON(http.StatusOK, gin.H{
 		"error": nil,
-		"data":  users,
+		"data":  groups,
 	})
 }

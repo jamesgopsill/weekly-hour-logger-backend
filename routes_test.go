@@ -407,7 +407,7 @@ func TestListGroupUsers(t *testing.T) {
 	mockRequest = `{
 		"name": "test group"
 	}`
-	req, _ = http.NewRequest("POST", "/group/list-users-in-group", bytes.NewBufferString(mockRequest))
+	req, _ = http.NewRequest("GET", "/group/list-users-in-group", bytes.NewBufferString(mockRequest))
 	req.Header.Set("Authorization", response.Data)
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
@@ -416,8 +416,6 @@ func TestListGroupUsers(t *testing.T) {
 	}
 	assert.Equal(t, http.StatusOK, w.Code)
 }
-
-// Delete group. Creates a group first, then kills it
 
 // create resource entry
 func TestAddResource(t *testing.T) {
@@ -819,6 +817,65 @@ func TestDeleteGroup(t *testing.T) {
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestListGroupResource(t *testing.T) {
+	mockRequest := `{
+		"password": "test",
+		"email": "test@test.com"
+	}`
+	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
+	assert.NoError(t, err)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response loginResponse
+	err = json.NewDecoder(w.Body).Decode(&response)
+	assert.NoError(t, err)
+
+	mockRequest = `{
+		"name": "DB Group"
+	}`
+	req, _ = http.NewRequest("GET", "/group/list-resource-in-group", bytes.NewBufferString(mockRequest))
+	req.Header.Set("Authorization", response.Data)
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestListGroups(t *testing.T) {
+	mockRequest := `{
+		"password": "test",
+		"email": "test@test.com"
+	}`
+	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
+	assert.NoError(t, err)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response loginResponse
+	err = json.NewDecoder(w.Body).Decode(&response)
+	assert.NoError(t, err)
+
+	req, _ = http.NewRequest("GET", "/group/list-groups", bytes.NewBufferString(mockRequest))
+	req.Header.Set("Authorization", response.Data)
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code == http.StatusOK {
 		log.Info().Msg(w.Body.String())
 	}
 	assert.Equal(t, http.StatusOK, w.Code)

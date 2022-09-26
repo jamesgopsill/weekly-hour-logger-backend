@@ -665,3 +665,91 @@ func TestUpdateResourceCreatesDuplicate(t *testing.T) {
 	}
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
+
+// Delete resource: no entry found to delete
+func TestDeleteResourceNoEntry(t *testing.T) {
+	mockRequest := `{
+		"password": "test",
+		"email": "test@test.com"
+	}`
+	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
+	assert.NoError(t, err)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response loginResponse
+	err = json.NewDecoder(w.Body).Decode(&response)
+	assert.NoError(t, err)
+
+	mockRequest = `{
+		"week": 2,
+		"value": 24,
+		"email": "dbtest3@test.com",
+		"name": "test group"
+	}`
+	req, _ = http.NewRequest("POST", "/resource/delete-resource", bytes.NewBufferString(mockRequest))
+	req.Header.Set("Authorization", response.Data)
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestDeleteResource(t *testing.T) {
+	mockRequest := `{
+		"password": "test",
+		"email": "test@test.com"
+	}`
+	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
+	assert.NoError(t, err)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response loginResponse
+	err = json.NewDecoder(w.Body).Decode(&response)
+	assert.NoError(t, err)
+
+	mockRequest = `{
+		"week": 8,
+		"value": 500,
+		"email": "test@test.com",
+		"name": "test group"
+	}`
+	req, _ = http.NewRequest("POST", "/resource/add-resource", bytes.NewBufferString(mockRequest))
+	req.Header.Set("Authorization", response.Data)
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var res loginResponse
+	err = json.NewDecoder(w.Body).Decode(&res)
+	assert.NoError(t, err)
+
+	mockRequest = `{
+		"week": 8,
+		"value": 500,
+		"email": "test@test.com",
+		"name": "test group"
+	}`
+	req, _ = http.NewRequest("POST", "/resource/delete-resource", bytes.NewBufferString(mockRequest))
+	req.Header.Set("Authorization", response.Data)
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+}

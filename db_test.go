@@ -55,16 +55,6 @@ func TestDB(t *testing.T) {
 	result = db.Connection.Create(&user)
 	assert.NoError(t, result.Error)
 
-	user = db.User{
-		Name:         "DB Test User 4 - no group",
-		Email:        "dbtest4@test.com",
-		PasswordHash: "db_hash",
-		Scopes:       []string{"user", "admin"},
-	}
-
-	result = db.Connection.Create(&user)
-	assert.NoError(t, result.Error)
-
 	resource := &db.Resource{
 		Week:    1,
 		Value:   18,
@@ -83,6 +73,16 @@ func TestDB(t *testing.T) {
 	}
 
 	result = db.Connection.Create(&resource)
+	assert.NoError(t, result.Error)
+
+	user = db.User{
+		Name:         "DB Test User 4 - no group",
+		Email:        "dbtest4@test.com",
+		PasswordHash: "db_hash",
+		Scopes:       []string{"user", "admin"},
+	}
+
+	result = db.Connection.Create(&user)
 	assert.NoError(t, result.Error)
 
 	db.Connection.Preload(clause.Associations).Find(&user)

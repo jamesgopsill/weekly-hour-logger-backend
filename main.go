@@ -55,6 +55,7 @@ func initialiseApp(dbPath string, mode string) *gin.Engine {
 
 	r.POST("/resource/add-resource", middleware.Authenticate(db.USER_SCOPE), resource.AddResource)
 	r.POST("/resource/update-resource", middleware.Authenticate(db.USER_SCOPE), resource.UpdateResource)
+	r.POST("/resource/delete-resource", middleware.Authenticate(db.USER_SCOPE), resource.DeleteResource)
 
 	return r
 }

@@ -65,6 +65,18 @@ func AddResource(c *gin.Context) {
 
 	groupID := group.ID
 
+	// check if the resource entry already exists
+	var resource db.Resource
+
+	res := db.Connection.Where("group_id = ? AND user_id = ? AND week = ?", groupID, userID, body.Week).First(&resource)
+	if res.Error == nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Entry already exists for this user, in this group, in this week.",
+			"data":  nil,
+		})
+		return
+	}
+
 	// create a new resource object
 	newResource := db.Resource{
 		Value:   body.Value,

@@ -33,12 +33,15 @@ func main() {
 
 func initialiseApp(dbPath string, mode string) *gin.Engine {
 
+	// Handle the command line flags
 	dev := flag.Bool("dev", false, "")
 	flag.Parse()
 
+	// Initialise
 	config.Initalise(dev)
 	db.Initialise()
 
+	// Create API
 	gin.SetMode(mode)
 
 	r := gin.New()

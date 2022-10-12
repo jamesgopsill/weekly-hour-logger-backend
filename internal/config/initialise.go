@@ -1,13 +1,25 @@
 package config
 
-import "os"
+import (
+	"os"
+
+	"github.com/rs/zerolog/log"
+)
 
 var DBPath string
 var Secret string
 var MySigningKey []byte
 var Issuer string
 
-func Initalise() {
+func Initalise(dev *bool) {
+
+	if *dev {
+		log.Info().Msg("Starting in development mode.")
+		Secret = "shhh"
+		Issuer = "www.test.com"
+		DBPath = "data/test.db"
+		return
+	}
 
 	Secret := os.Getenv("GO_REST_JWT_SECRET")
 	if Secret == "" {

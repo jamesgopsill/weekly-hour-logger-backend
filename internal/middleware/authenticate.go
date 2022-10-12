@@ -1,9 +1,9 @@
 package middleware
 
 import (
+	"jamesgopsill/resource-logger-backend/internal/config"
 	"jamesgopsill/resource-logger-backend/internal/controllers/user"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -17,11 +17,6 @@ type headers struct {
 }
 
 func Authenticate(scope string) gin.HandlerFunc {
-
-	secret := os.Getenv("GO_REST_JWT_SECRET")
-	if secret == "" {
-		panic("No Secret Key Detected")
-	}
 
 	fn := func(c *gin.Context) {
 
@@ -54,7 +49,7 @@ func Authenticate(scope string) gin.HandlerFunc {
 					return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 				}
 			*/
-			return []byte(secret), nil
+			return []byte(config.Secret), nil
 		})
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{

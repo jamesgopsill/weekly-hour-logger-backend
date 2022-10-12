@@ -1,7 +1,9 @@
 package main
 
 import (
+	"flag"
 	"net/http"
+	"testing"
 
 	"jamesgopsill/resource-logger-backend/internal/config"
 	"jamesgopsill/resource-logger-backend/internal/controllers/group"
@@ -16,6 +18,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// https://github.com/golang/go/issues/31859
+var _ = func() bool {
+	testing.Init()
+	return true
+}()
+
 func main() {
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	log.Info().Msg("Starting App")
@@ -24,7 +32,11 @@ func main() {
 }
 
 func initialiseApp(dbPath string, mode string) *gin.Engine {
-	config.Initalise()
+
+	dev := flag.Bool("dev", false, "")
+	flag.Parse()
+
+	config.Initalise(dev)
 	db.Initialise()
 
 	gin.SetMode(mode)

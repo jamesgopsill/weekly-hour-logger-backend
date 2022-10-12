@@ -2,6 +2,19 @@
 
 # Using this repository
 
+Install packages
+
+```
+go mod vendor
+```
+
+
+Test
+
+```
+go test
+```
+
 # Recreating this repository
 
 **TODO**

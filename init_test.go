@@ -11,8 +11,15 @@ import (
 
 var r *gin.Engine
 var invalidSignedString string
+var validUserSignedString string
+var validUserClaims *user.MyCustomClaims
 
 const SECRET = "test"
+
+type apiResponse struct {
+	Error string
+	Data  string
+}
 
 func init() {
 	dbPath := "data/test.db"

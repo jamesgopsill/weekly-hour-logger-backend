@@ -33,7 +33,8 @@ func TestRegister(t *testing.T) {
 		"password" : "test",
 		"confirmPassword" : "test"
 	}`
-	req, err := http.NewRequest("POST", "/user/register", bytes.NewBufferString(mockRequest))
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/user/register", mockRequestBufferString)
 	assert.NoError(t, err)
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
@@ -51,7 +52,8 @@ func TestRegisterAccountExists(t *testing.T) {
 		"password" : "test",
 		"confirmPassword" : "test"
 	}`
-	req, err := http.NewRequest("POST", "/user/register", bytes.NewBufferString(mockRequest))
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/user/register", mockRequestBufferString)
 	assert.NoError(t, err)
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
@@ -66,7 +68,8 @@ func TestLogin(t *testing.T) {
 		"password": "test",
 		"email": "test@test.com"
 	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/user/login", mockRequestBufferString)
 	assert.NoError(t, err)
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
@@ -74,11 +77,32 @@ func TestLogin(t *testing.T) {
 		log.Info().Msg(w.Body.String())
 	}
 	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response apiResponse
+	err = json.NewDecoder(w.Body).Decode(&response)
+	assert.NoError(t, err)
+
+	// This is being assigned to a global var for future use. Check init_test.go
+	validUserSignedString = response.Data
+	els := strings.Split(response.Data, " ")
+
+	token, err := jwt.ParseWithClaims(els[1], &user.MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(SECRET), nil
+	})
+	assert.NoError(t, err)
+
+	// Got to initialise before because the fcn will try and create two new vars rather than use an existing global var.
+	var ok bool
+	// This is being assigned to a global var for future use. Check init_test.go
+	validUserClaims, ok = token.Claims.(*user.MyCustomClaims)
+	assert.True(t, ok)
+	assert.NotNil(t, validUserClaims)
 }
 
 func TestAuthMiddlewareInvalidToken(t *testing.T) {
 	mockRequest := `{}`
-	req, err := http.NewRequest("POST", "/user/update", bytes.NewBufferString(mockRequest))
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/user/update", mockRequestBufferString)
 	assert.NoError(t, err)
 	req.Header.Set("Authorization", "Bearer "+invalidSignedString)
 	w := httptest.NewRecorder()
@@ -95,41 +119,16 @@ type loginResponse struct {
 }
 
 func TestUpdateUser(t *testing.T) {
-	var mockRequest string
-	mockRequest = `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
-	assert.NoError(t, err)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-	els := strings.Split(response.Data, " ")
-
-	token, err := jwt.ParseWithClaims(els[1], &user.MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(SECRET), nil
-	})
-	assert.NoError(t, err)
-	claims, ok := token.Claims.(*user.MyCustomClaims)
-	assert.Equal(t, true, ok)
-
-	mockRequest = `{
-		"id": "` + claims.ID + `",
+	mockRequest := `{
+		"id": "` + validUserClaims.ID + `",
 		"name": "updated name",
 		"email": "test@test.com"
 	}`
-	req, err = http.NewRequest("POST", "/user/update", bytes.NewBufferString(mockRequest))
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/user/update", mockRequestBufferString)
 	assert.NoError(t, err)
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
@@ -138,26 +137,11 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestRefreshToken(t *testing.T) {
-	mockRequest := `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
+	bufferMockRequest := bytes.NewBufferString("")
+	req, err := http.NewRequest("POST", "/user/refresh-token", bufferMockRequest)
 	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
 	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-
-	req, _ = http.NewRequest("POST", "/user/refresh-token", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
@@ -166,26 +150,11 @@ func TestRefreshToken(t *testing.T) {
 }
 
 func TestListAllUsers(t *testing.T) {
-	mockRequest := `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
+	bufferMockRequest := bytes.NewBufferString("")
+	req, err := http.NewRequest("GET", "/user/list-all-users", bufferMockRequest)
 	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
 	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-
-	req, _ = http.NewRequest("GET", "/user/list-all-users", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
@@ -195,29 +164,14 @@ func TestListAllUsers(t *testing.T) {
 
 func TestCreateGroup(t *testing.T) {
 	mockRequest := `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
-	assert.NoError(t, err)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-
-	mockRequest = `{
 		"name": "test group",
 		"emails": ["test@test.com"]
 	}`
-	req, _ = http.NewRequest("POST", "/group/create-group", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/group/create-group", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
@@ -227,29 +181,14 @@ func TestCreateGroup(t *testing.T) {
 
 func TestCreateGroupAlreadyExists(t *testing.T) {
 	mockRequest := `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
-	assert.NoError(t, err)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-
-	mockRequest = `{
 		"name": "test group",
 		"emails": ["this_shouldnt_be_here@test.com"]
 	}`
-	req, _ = http.NewRequest("POST", "/group/create-group", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/group/create-group", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code == http.StatusOK {
 		log.Info().Msg(w.Body.String())
@@ -259,29 +198,14 @@ func TestCreateGroupAlreadyExists(t *testing.T) {
 
 func TestAddGroup(t *testing.T) {
 	mockRequest := `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
-	assert.NoError(t, err)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-
-	mockRequest = `{
 		"name": "test group",
 		"emails": ["dbtest2@test.com", "dbtest3@test.com"]
 	}`
-	req, _ = http.NewRequest("POST", "/group/add-users", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/group/add-users", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
@@ -291,29 +215,14 @@ func TestAddGroup(t *testing.T) {
 
 func TestAddGroupUserAlreadyInGroup(t *testing.T) {
 	mockRequest := `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
-	assert.NoError(t, err)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-
-	mockRequest = `{
 		"name": "test group",
 		"emails": ["dbtest2@test.com"]
 	}`
-	req, _ = http.NewRequest("POST", "/group/add-users", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/group/add-users", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code == http.StatusOK {
 		log.Info().Msg(w.Body.String())
@@ -324,29 +233,14 @@ func TestAddGroupUserAlreadyInGroup(t *testing.T) {
 // test remove user. Remove 'dbtest2@test.com' from 'test group'.
 func TestRemoveGroup(t *testing.T) {
 	mockRequest := `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
-	assert.NoError(t, err)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-
-	mockRequest = `{
 		"name": "test group",
 		"emails": ["dbtest2@test.com"]
 	}`
-	req, _ = http.NewRequest("POST", "/group/remove-users", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/group/remove-users", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
@@ -356,29 +250,14 @@ func TestRemoveGroup(t *testing.T) {
 
 func TestRemoveGroupUserNotInGroup(t *testing.T) {
 	mockRequest := `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
-	assert.NoError(t, err)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-
-	mockRequest = `{
 		"name": "test group",
 		"emails": ["db@test.com"]
 	}`
-	req, _ = http.NewRequest("POST", "/group/remove-users", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/group/remove-users", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
@@ -388,28 +267,13 @@ func TestRemoveGroupUserNotInGroup(t *testing.T) {
 
 func TestListGroupUsers(t *testing.T) {
 	mockRequest := `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
-	assert.NoError(t, err)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-
-	mockRequest = `{
 		"name": "test group"
 	}`
-	req, _ = http.NewRequest("GET", "/group/list-users-in-group", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("GET", "/group/list-users-in-group", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
@@ -420,31 +284,16 @@ func TestListGroupUsers(t *testing.T) {
 // create resource entry
 func TestAddResource(t *testing.T) {
 	mockRequest := `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
-	assert.NoError(t, err)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-
-	mockRequest = `{
 		"week": 7,
 		"value": 500,
 		"email": "test@test.com",
 		"name": "test group"
 	}`
-	req, _ = http.NewRequest("POST", "/resource/add-resource", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/resource/add-resource", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
@@ -455,31 +304,16 @@ func TestAddResource(t *testing.T) {
 // resource - add resource entry to a group - user not in group
 func TestAddResourceNotInGroup(t *testing.T) {
 	mockRequest := `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
-	assert.NoError(t, err)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-
-	mockRequest = `{
 		"week": 9,
 		"value": 200,
 		"email": "test@test.com",
 		"name": "DB Group"
 	}`
-	req, _ = http.NewRequest("POST", "/resource/add-resource", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/resource/add-resource", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
@@ -490,31 +324,16 @@ func TestAddResourceNotInGroup(t *testing.T) {
 // resource - Fail: add resource entry to a group - entry already present
 func TestAddResourceAlreadyExists(t *testing.T) {
 	mockRequest := `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
-	assert.NoError(t, err)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-
-	mockRequest = `{
 		"week": 7,
 		"value": 200,
 		"email": "test@test.com",
 		"name": "test group"
 	}`
-	req, _ = http.NewRequest("POST", "/resource/add-resource", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/resource/add-resource", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
@@ -525,32 +344,17 @@ func TestAddResourceAlreadyExists(t *testing.T) {
 // resource - update entry; new value, same week
 func TestUpdateResourceSameWeek(t *testing.T) {
 	mockRequest := `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
-	assert.NoError(t, err)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-
-	mockRequest = `{
 		"oldWeek": 7,
 		"newWeek": 7,
 		"value": 400,
 		"email": "test@test.com",
 		"name": "test group"
 	}`
-	req, _ = http.NewRequest("POST", "/resource/update-resource", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/resource/update-resource", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
@@ -560,33 +364,19 @@ func TestUpdateResourceSameWeek(t *testing.T) {
 
 // resource - update, new week and new value
 func TestUpdateResourceNewWeek(t *testing.T) {
+
 	mockRequest := `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
-	assert.NoError(t, err)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-
-	mockRequest = `{
 		"oldWeek": 7,
 		"newWeek": 13,
 		"value": 800,
 		"email": "test@test.com",
 		"name": "test group"
 	}`
-	req, _ = http.NewRequest("POST", "/resource/update-resource", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/resource/update-resource", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
@@ -596,33 +386,19 @@ func TestUpdateResourceNewWeek(t *testing.T) {
 
 // resource - update, old entry doesn't exist
 func TestUpdateResourceOldWeekNotExisting(t *testing.T) {
+
 	mockRequest := `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
-	assert.NoError(t, err)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-
-	mockRequest = `{
 		"oldWeek": 9,
 		"newWeek": 15,
 		"value": 600,
 		"email": "test@test.com",
 		"name": "test group"
 	}`
-	req, _ = http.NewRequest("POST", "/resource/update-resource", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/resource/update-resource", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
@@ -632,33 +408,19 @@ func TestUpdateResourceOldWeekNotExisting(t *testing.T) {
 
 // update resource - fail: would create duplicate entries for a single week
 func TestUpdateResourceCreatesDuplicate(t *testing.T) {
+
 	mockRequest := `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
-	assert.NoError(t, err)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-
-	mockRequest = `{
 		"oldWeek": 9,
 		"newWeek": 13,
 		"value": 600,
 		"email": "test@test.com",
 		"name": "test group"
 	}`
-	req, _ = http.NewRequest("POST", "/resource/update-resource", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/resource/update-resource", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
@@ -669,31 +431,16 @@ func TestUpdateResourceCreatesDuplicate(t *testing.T) {
 // Delete resource: no entry found to delete
 func TestDeleteResourceNoEntry(t *testing.T) {
 	mockRequest := `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
-	assert.NoError(t, err)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-
-	mockRequest = `{
 		"week": 2,
 		"value": 24,
 		"email": "dbtest3@test.com",
 		"name": "test group"
 	}`
-	req, _ = http.NewRequest("POST", "/resource/delete-resource", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/resource/delete-resource", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
@@ -703,31 +450,16 @@ func TestDeleteResourceNoEntry(t *testing.T) {
 
 func TestDeleteResource(t *testing.T) {
 	mockRequest := `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
-	assert.NoError(t, err)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-
-	mockRequest = `{
 		"week": 8,
 		"value": 500,
 		"email": "test@test.com",
 		"name": "test group"
 	}`
-	req, _ = http.NewRequest("POST", "/resource/add-resource", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/resource/add-resource", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
@@ -744,8 +476,10 @@ func TestDeleteResource(t *testing.T) {
 		"email": "test@test.com",
 		"name": "test group"
 	}`
-	req, _ = http.NewRequest("POST", "/resource/delete-resource", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
+	mockRequestBufferString = bytes.NewBufferString(mockRequest)
+	req, err = http.NewRequest("POST", "/resource/delete-resource", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
@@ -756,30 +490,16 @@ func TestDeleteResource(t *testing.T) {
 
 // Delete group: Deletes all resource entries from that group, and removes the link between group and user
 func TestDeleteGroup(t *testing.T) {
+
 	mockRequest := `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
-	assert.NoError(t, err)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-
-	mockRequest = `{
 		"name": "test group to delete",
 		"emails": ["dbtest4@test.com"]
 	}`
-	req, _ = http.NewRequest("POST", "/group/create-group", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/group/create-group", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
@@ -796,8 +516,10 @@ func TestDeleteGroup(t *testing.T) {
 		"email": "dbtest4@test.com",
 		"name": "test group to delete"
 	}`
-	req, _ = http.NewRequest("POST", "/resource/add-resource", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
+	mockRequestBufferString = bytes.NewBufferString(mockRequest)
+	req, err = http.NewRequest("POST", "/resource/add-resource", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
@@ -812,8 +534,10 @@ func TestDeleteGroup(t *testing.T) {
 	mockRequest = `{
 		"name": "test group to delete"
 	}`
-	req, _ = http.NewRequest("POST", "/group/delete-group", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
+	mockRequestBufferString = bytes.NewBufferString(mockRequest)
+	req, err = http.NewRequest("POST", "/group/delete-group", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
@@ -824,28 +548,13 @@ func TestDeleteGroup(t *testing.T) {
 
 func TestListGroupResource(t *testing.T) {
 	mockRequest := `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
-	assert.NoError(t, err)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-
-	mockRequest = `{
 		"name": "DB Group"
 	}`
-	req, _ = http.NewRequest("GET", "/group/list-resource-in-group", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("GET", "/group/list-resource-in-group", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
@@ -854,26 +563,11 @@ func TestListGroupResource(t *testing.T) {
 }
 
 func TestListGroups(t *testing.T) {
-	mockRequest := `{
-		"password": "test",
-		"email": "test@test.com"
-	}`
-	req, err := http.NewRequest("POST", "/user/login", bytes.NewBufferString(mockRequest))
+	mockRequestBufferString := bytes.NewBufferString("")
+	req, err := http.NewRequest("GET", "/group/list-groups", mockRequestBufferString)
 	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
 	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
-		log.Info().Msg(w.Body.String())
-	}
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var response loginResponse
-	err = json.NewDecoder(w.Body).Decode(&response)
-	assert.NoError(t, err)
-
-	req, _ = http.NewRequest("GET", "/group/list-groups", bytes.NewBufferString(mockRequest))
-	req.Header.Set("Authorization", response.Data)
-	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())

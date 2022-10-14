@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"github.com/rs/zerolog/log"
 	"gorm.io/gorm/utils"
 )
 
@@ -49,9 +50,10 @@ func Authenticate(scope string) gin.HandlerFunc {
 					return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 				}
 			*/
-			return []byte(config.Secret), nil
+			return config.MySigningKey, nil
 		})
 		if err != nil {
+			log.Info().Err(err)
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"error": "Invalid token (2)",
 				"data":  nil,

@@ -20,6 +20,7 @@ func Initalise(dev *bool) {
 		DBPath = "data/test.db"
 		return
 	}
+	log.Info().Msg("Getting config from Env Vars.")
 
 	Secret := os.Getenv("GO_REST_JWT_SECRET")
 	if Secret == "" {

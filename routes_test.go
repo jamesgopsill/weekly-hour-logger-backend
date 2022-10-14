@@ -119,6 +119,7 @@ type loginResponse struct {
 }
 
 func TestUpdateUser(t *testing.T) {
+	log.Info().Msg(validUserSignedString)
 	mockRequest := `{
 		"id": "` + validUserClaims.ID + `",
 		"name": "updated name",

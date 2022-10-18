@@ -113,6 +113,59 @@ func TestAuthMiddlewareInvalidToken(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
+func TestUpdateScopesAddAdmin(t *testing.T) {
+	mockRequest := `{
+		"id": "` + validUserClaims.ID + `",
+		"scopes": ["admin"]
+	}`
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/user/update-scopes", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestLoginAdmin(t *testing.T) {
+	mockRequest := `{
+		"password": "test",
+		"email": "test@test.com"
+	}`
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/user/login", mockRequestBufferString)
+	assert.NoError(t, err)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response apiResponse
+	err = json.NewDecoder(w.Body).Decode(&response)
+	assert.NoError(t, err)
+
+	// This is being assigned to a global var for future use. Check init_test.go
+	validUserSignedString = response.Data
+	els := strings.Split(response.Data, " ")
+
+	token, err := jwt.ParseWithClaims(els[1], &user.MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(SECRET), nil
+	})
+	assert.NoError(t, err)
+
+	// Got to initialise before because the fcn will try and create two new vars rather than use an existing global var.
+	var ok bool
+	// This is being assigned to a global var for future use. Check init_test.go
+	validUserClaims, ok = token.Claims.(*user.MyCustomClaims)
+	assert.True(t, ok)
+	assert.NotNil(t, validUserClaims)
+}
+
 type loginResponse struct {
 	Error string
 	Data  string

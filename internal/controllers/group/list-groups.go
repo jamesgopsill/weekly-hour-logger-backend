@@ -12,7 +12,7 @@ func ListGroups(c *gin.Context) {
 
 	// Retrieve the group
 	var groups []db.Group
-	res := db.Connection.Find(&groups)
+	res := db.Connection.Preload("Users").Find(&groups)
 
 	if res.Error != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{

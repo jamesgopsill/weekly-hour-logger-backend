@@ -11,8 +11,6 @@ import (
 
 func TestDB(t *testing.T) {
 
-	log.Info().Msg("hello")
-
 	user := db.User{
 		Name:         "DB Test",
 		Email:        "db@test.com",

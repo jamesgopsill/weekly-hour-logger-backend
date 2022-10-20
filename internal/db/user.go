@@ -27,14 +27,3 @@ func (user *User) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	return
 }
-
-/*
-
-func (b *Base) BeforeCreate(tx *gorm.DB) (err error) {
-	// UUID version 4
-	if b.ID == "" {
-		b.ID = uuid.New().String()
-	}
-	return
-}
-*/

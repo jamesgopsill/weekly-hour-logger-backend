@@ -35,11 +35,12 @@ func UpdateScopes(c *gin.Context) {
 		return
 	}
 
-	if claims.ID != body.ID && utils.Contains(claims.Scopes, db.ADMIN_SCOPE) {
+	if !utils.Contains(claims.Scopes, db.ADMIN_SCOPE) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 			"error": "Need adminstrative rights.",
 			"data":  nil,
 		})
+		return
 	}
 
 	var user db.User
@@ -53,15 +54,15 @@ func UpdateScopes(c *gin.Context) {
 		return
 	}
 
-	scopes := user.Scopes
-	scopes = nil
-	scopes = append(scopes, db.USER_SCOPE)
+	// Reset and update scopes according to request
+	user.Scopes = nil
+	user.Scopes = append(user.Scopes, db.USER_SCOPE)
 
-	if utils.Contains(body.Scopes, "admin") {
-		scopes = append(scopes, db.ADMIN_SCOPE)
+	if utils.Contains(body.Scopes, db.ADMIN_SCOPE) {
+		user.Scopes = append(user.Scopes, db.ADMIN_SCOPE)
 	}
 
-	result := db.Connection.Model(&user).Update("Scopes", scopes)
+	result := db.Connection.Model(&user).Update("Scopes", user.Scopes)
 
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

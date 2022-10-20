@@ -3,13 +3,13 @@ package middleware
 import (
 	"jamesgopsill/resource-logger-backend/internal/config"
 	"jamesgopsill/resource-logger-backend/internal/controllers/user"
+	"jamesgopsill/resource-logger-backend/internal/utils"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"github.com/rs/zerolog/log"
-	"gorm.io/gorm/utils"
 )
 
 // headers are the headers we expect in a auth
@@ -24,6 +24,7 @@ func Authenticate(scope string) gin.HandlerFunc {
 		var h headers
 		var err error
 		if err = c.ShouldBindHeader(&h); err != nil {
+			log.Error().Err(err).Msg("Request Structure Error")
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"error": "Headers issue",
 				"data":  nil,
@@ -36,6 +37,7 @@ func Authenticate(scope string) gin.HandlerFunc {
 
 		// Check its length
 		if len(els) != 2 {
+			log.Error().Msg("Invalid Token Structure")
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"error": "Invalid token (1)",
 				"data":  nil,
@@ -53,7 +55,7 @@ func Authenticate(scope string) gin.HandlerFunc {
 			return config.MySigningKey, nil
 		})
 		if err != nil {
-			log.Info().Err(err)
+			log.Error().Err(err).Msg("ParseWithClaims Error")
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"error": "Invalid token (2)",
 				"data":  nil,

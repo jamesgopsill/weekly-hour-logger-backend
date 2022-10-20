@@ -140,7 +140,7 @@ func TestUpdateScopesAddAdmin(t *testing.T) {
 	mockRequestBufferString := bytes.NewBufferString(mockRequest)
 	req, err := http.NewRequest("POST", "/user/update-scopes", mockRequestBufferString)
 	assert.NoError(t, err)
-	req.Header.Set("Authorization", validUserSignedString)
+	req.Header.Set("Authorization", "Bearer "+mockAdminSignedString)
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
@@ -348,7 +348,7 @@ func TestListGroupUsers(t *testing.T) {
 	req.Header.Set("Authorization", validUserSignedString)
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
-	if w.Code == http.StatusOK {
+	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
 	}
 	assert.Equal(t, http.StatusOK, w.Code)

@@ -61,7 +61,7 @@ func initialiseApp(dbPath string, mode string) *gin.Engine {
 	r.POST("/user/update", middleware.Authenticate(db.ADMIN_SCOPE), user.Update)
 	r.POST("/user/refresh-token", middleware.Authenticate(db.USER_SCOPE), user.RefreshToken)
 	r.POST("/user/update-password", middleware.Authenticate(db.USER_SCOPE), user.UpdatePassword)
-	r.POST("/user/update-scopes", middleware.Authenticate(db.USER_SCOPE), user.UpdateScopes)
+	r.POST("/user/update-scopes", middleware.Authenticate(db.ADMIN_SCOPE), user.UpdateScopes)
 
 	// r.POST("/group", middleware.Authenticate(db.USER_SCOPE), group.Post)
 	r.POST("/group/create-group", middleware.Authenticate(db.ADMIN_SCOPE), group.CreateGroup)
@@ -70,8 +70,7 @@ func initialiseApp(dbPath string, mode string) *gin.Engine {
 	r.GET("/group/list-users-in-group", middleware.Authenticate(db.USER_SCOPE), group.ListUsersInGroup)
 	r.POST("/group/delete-group", middleware.Authenticate(db.ADMIN_SCOPE), group.DeleteGroup)
 	r.GET("/group/list-resource-in-group", middleware.Authenticate(db.USER_SCOPE), group.ListResourceInGroup)
-	//r.GET("/group/list-groups", middleware.Authenticate(db.USER_SCOPE), group.ListGroups)
-	r.GET("/group/list-groups", group.ListGroups)
+	r.GET("/group/list-groups", middleware.Authenticate(db.ADMIN_SCOPE), group.ListGroups)
 
 	r.POST("/resource/add-resource", middleware.Authenticate(db.USER_SCOPE), resource.AddResource)
 	r.POST("/resource/update-resource", middleware.Authenticate(db.USER_SCOPE), resource.UpdateResource)

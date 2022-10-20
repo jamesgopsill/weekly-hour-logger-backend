@@ -62,6 +62,7 @@ func initialiseApp(dbPath string, mode string) *gin.Engine {
 	r.POST("/user/refresh-token", middleware.Authenticate(db.USER_SCOPE), user.RefreshToken)
 	r.POST("/user/update-password", middleware.Authenticate(db.USER_SCOPE), user.UpdatePassword)
 	r.POST("/user/update-scopes", middleware.Authenticate(db.ADMIN_SCOPE), user.UpdateScopes)
+	r.GET("/user/find-user", middleware.Authenticate(db.USER_SCOPE), user.FindUser)
 
 	// r.POST("/group", middleware.Authenticate(db.USER_SCOPE), group.Post)
 	r.POST("/group/create-group", middleware.Authenticate(db.ADMIN_SCOPE), group.CreateGroup)

@@ -647,3 +647,19 @@ func TestListGroups(t *testing.T) {
 	}
 	assert.Equal(t, http.StatusOK, w.Code)
 }
+
+func TestFindUser(t *testing.T) {
+	mockRequest := `{
+		"email": "test@test.com"
+	}`
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("GET", "/user/find-user", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+}

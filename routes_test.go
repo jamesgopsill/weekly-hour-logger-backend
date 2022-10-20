@@ -44,6 +44,25 @@ func TestRegister(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
+func TestRegisterNonAdmin(t *testing.T) {
+	mockRequest := `{
+		"name": "test_user",
+		"email" : "test_user@test.com",
+		"confirmEmail" : "test_user@test.com",
+		"password" : "test_user",
+		"confirmPassword" : "test_user"
+	}`
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/user/register", mockRequestBufferString)
+	assert.NoError(t, err)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
 func TestRegisterAccountExists(t *testing.T) {
 	mockRequest := `{
 		"name": "test",
@@ -329,7 +348,7 @@ func TestListGroupUsers(t *testing.T) {
 	req.Header.Set("Authorization", validUserSignedString)
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
-	if w.Code != http.StatusOK {
+	if w.Code == http.StatusOK {
 		log.Info().Msg(w.Body.String())
 	}
 	assert.Equal(t, http.StatusOK, w.Code)

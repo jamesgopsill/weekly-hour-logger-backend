@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog/log"
 	// "github.com/google/uuid"
 )
 
@@ -86,7 +85,11 @@ func RemoveUsers(c *gin.Context) {
 	for _, email := range body.Emails {
 		res := contains(usersOriginalEmails, email)
 		if !res {
-			log.Info().Msg("WARNING: User email: " + email + " not in group in the first place.")
+			c.JSON(http.StatusUnprocessableEntity, gin.H{
+				"error": "User(s) not found in this group",
+				"data":  nil,
+			})
+			return
 		}
 	}
 

@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"jamesgopsill/resource-logger-backend/internal/config"
 	"jamesgopsill/resource-logger-backend/internal/controllers/user"
 	"jamesgopsill/resource-logger-backend/internal/utils"
@@ -47,11 +48,9 @@ func Authenticate(scope string) gin.HandlerFunc {
 
 		token, err := jwt.ParseWithClaims(els[1], &user.MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 			// Don't forget to validate the alg is what you expect:
-			/*
-				if _, ok := token.Method.(jwt.SigningMethodHS256); !ok {
-					return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-				}
-			*/
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
 			return config.MySigningKey, nil
 		})
 		if err != nil {

@@ -134,7 +134,7 @@ func TestAuthMiddlewareInvalidToken(t *testing.T) {
 
 func TestUpdateScopesAddAdmin(t *testing.T) {
 	mockRequest := `{
-		"id": "` + validUserClaims.ID + `",
+		"email": "test@test.com",
 		"scopes": ["admin"]
 	}`
 	mockRequestBufferString := bytes.NewBufferString(mockRequest)
@@ -662,4 +662,21 @@ func TestFindUser(t *testing.T) {
 		log.Info().Msg(w.Body.String())
 	}
 	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestAddGroupUserAlreadyInADifferentGroup(t *testing.T) {
+	mockRequest := `{
+		"name": "test group",
+		"emails": ["db@test.com"]
+	}`
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/group/add-users", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code == http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
 }

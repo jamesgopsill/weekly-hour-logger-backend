@@ -73,7 +73,7 @@ func AddUsers(c *gin.Context) {
 	for _, email := range body.Emails {
 		// Check if the user exists
 		var user db.User
-		res := db.Connection.First(&user, "email=?", email)
+		res := db.Connection.Preload("Group").First(&user, "email=?", email)
 		if res.Error != nil {
 			c.JSON(http.StatusUnprocessableEntity, gin.H{
 				"error": "User does not exist",
@@ -82,8 +82,16 @@ func AddUsers(c *gin.Context) {
 			return
 		}
 
-		// if they do, add them to the user list for the group
-		// log.Info().Msg("Adding user " + user.ID + " to group.")
+		// Check if the user is in another group
+		if user.Group.Name != "" {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{
+				"error": "User is already in a different group",
+				"data":  nil,
+			})
+			return
+		}
+
+		// if they do exist and aren't in another group, add them to the user list for the group
 		users = append(users, user)
 	}
 

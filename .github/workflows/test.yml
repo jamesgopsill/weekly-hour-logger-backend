@@ -19,7 +19,7 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: '^1.19.0'
-      - name: Print Go Version
-        run: go version
+      - name: Make data directory
+        run: mkdir data
       - name: Run Tests
         run: go test

@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -73,7 +72,6 @@ func Register(c *gin.Context) {
 	scopes = append(scopes, db.USER_SCOPE)
 
 	db.Connection.Create(&db.User{
-		ID:           uuid.New().String(),
 		Name:         body.Name,
 		Email:        body.Email,
 		PasswordHash: string(hash),

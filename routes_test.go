@@ -335,7 +335,7 @@ func TestRemoveGroupUserNotInGroup(t *testing.T) {
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
 	}
-	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
 }
 
 func TestListGroupUsers(t *testing.T) {
@@ -343,7 +343,7 @@ func TestListGroupUsers(t *testing.T) {
 		"name": "test group"
 	}`
 	mockRequestBufferString := bytes.NewBufferString(mockRequest)
-	req, err := http.NewRequest("GET", "/group/list-users-in-group", mockRequestBufferString)
+	req, err := http.NewRequest("POST", "/group/list-users-in-group", mockRequestBufferString)
 	assert.NoError(t, err)
 	req.Header.Set("Authorization", validUserSignedString)
 	w := httptest.NewRecorder()
@@ -624,7 +624,7 @@ func TestListGroupResource(t *testing.T) {
 		"name": "DB Group"
 	}`
 	mockRequestBufferString := bytes.NewBufferString(mockRequest)
-	req, err := http.NewRequest("GET", "/group/list-resource-in-group", mockRequestBufferString)
+	req, err := http.NewRequest("POST", "/group/list-resource-in-group", mockRequestBufferString)
 	assert.NoError(t, err)
 	req.Header.Set("Authorization", validUserSignedString)
 	w := httptest.NewRecorder()
@@ -637,7 +637,7 @@ func TestListGroupResource(t *testing.T) {
 
 func TestListGroups(t *testing.T) {
 	mockRequestBufferString := bytes.NewBufferString("")
-	req, err := http.NewRequest("GET", "/group/list-groups", mockRequestBufferString)
+	req, err := http.NewRequest("POST", "/group/list-groups", mockRequestBufferString)
 	assert.NoError(t, err)
 	req.Header.Set("Authorization", validUserSignedString)
 	w := httptest.NewRecorder()
@@ -653,7 +653,7 @@ func TestFindUser(t *testing.T) {
 		"email": "test@test.com"
 	}`
 	mockRequestBufferString := bytes.NewBufferString(mockRequest)
-	req, err := http.NewRequest("GET", "/user/find-user", mockRequestBufferString)
+	req, err := http.NewRequest("POST", "/user/find-user", mockRequestBufferString)
 	assert.NoError(t, err)
 	req.Header.Set("Authorization", validUserSignedString)
 	w := httptest.NewRecorder()

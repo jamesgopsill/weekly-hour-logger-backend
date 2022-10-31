@@ -1,0 +1,71 @@
+package user
+
+import (
+	"jamesgopsill/resource-logger-backend/internal/db"
+	"jamesgopsill/resource-logger-backend/internal/utils"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
+)
+
+type resetPasswordRequest struct {
+	ID string `json:"id" binding:"required"`
+}
+
+func ResetPassword(c *gin.Context) {
+
+	var body resetPasswordRequest
+	var err error
+
+	if err = c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+			"data":  nil,
+		})
+		return
+	}
+
+	claims, ok := c.MustGet(gin.AuthUserKey).(*MyCustomClaims)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Auth pass-through problem.",
+			"data":  nil,
+		})
+		return
+	}
+
+	var user db.User
+	res := db.Connection.First(&user, "id=?", body.ID)
+	if res.Error != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": "Account does not exist",
+			"data":  nil,
+		})
+		return
+	}
+
+	if claims.ID != body.ID || utils.Contains(claims.Scopes, db.ADMIN_SCOPE) {
+		hash, err := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.MinCost)
+		if err != nil {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{
+				"error": "Issue creating password",
+				"data":  nil,
+			})
+			return
+		}
+
+		db.Connection.Model(&user).Update("PasswordHash", hash)
+		c.JSON(http.StatusOK, gin.H{
+			"error": nil,
+			"data":  "success",
+		})
+		return
+	}
+
+	c.JSON(http.StatusBadGateway, gin.H{
+		"error": "Should never get here.",
+		"data":  nil,
+	})
+
+}

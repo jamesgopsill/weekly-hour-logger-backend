@@ -72,7 +72,7 @@ func UpdatePassword(c *gin.Context) {
 
 	}
 
-	if claims.ID != body.ID || utils.Contains(claims.Scopes, db.ADMIN_SCOPE) {
+	if claims.ID != body.ID || utils.Contains(claims.Scopes, db.USER_SCOPE) {
 		hash, err := bcrypt.GenerateFromPassword([]byte(body.NewPassword), bcrypt.MinCost)
 		if err != nil {
 			c.JSON(http.StatusUnprocessableEntity, gin.H{

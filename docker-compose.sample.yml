@@ -3,7 +3,7 @@ version: '3.7'
 api:
     image: golang:1.19
     ports:
-      - 3000:3000
+      - 443:3000
     volumes:
       - .:/app 
     environment:

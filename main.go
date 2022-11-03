@@ -28,7 +28,7 @@ func main() {
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	log.Info().Msg("Starting App")
 	r := initialiseApp("data/test.db", gin.ReleaseMode)
-	r.Run("localhost:3000")
+	r.Run(":3000")
 }
 
 func initialiseApp(dbPath string, mode string) *gin.Engine {

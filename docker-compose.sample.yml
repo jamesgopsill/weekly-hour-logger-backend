@@ -1,0 +1,13 @@
+version: '3.7'
+
+api:
+    image: golang:1.19
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/app 
+    environment:
+      - GO_REST_JWT_SECRET=
+      - GO_REST_JWT_ISSUER=
+      - GO_REST_DB_PATH=
+    command: go run .

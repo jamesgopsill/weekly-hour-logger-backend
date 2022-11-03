@@ -134,7 +134,7 @@ func TestAuthMiddlewareInvalidToken(t *testing.T) {
 
 func TestUpdateScopesAddAdmin(t *testing.T) {
 	mockRequest := `{
-		"id": "` + validUserClaims.ID + `",
+		"email": "test@test.com",
 		"scopes": ["admin"]
 	}`
 	mockRequestBufferString := bytes.NewBufferString(mockRequest)
@@ -335,7 +335,7 @@ func TestRemoveGroupUserNotInGroup(t *testing.T) {
 	if w.Code != http.StatusOK {
 		log.Info().Msg(w.Body.String())
 	}
-	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
 }
 
 func TestListGroupUsers(t *testing.T) {
@@ -343,7 +343,7 @@ func TestListGroupUsers(t *testing.T) {
 		"name": "test group"
 	}`
 	mockRequestBufferString := bytes.NewBufferString(mockRequest)
-	req, err := http.NewRequest("GET", "/group/list-users-in-group", mockRequestBufferString)
+	req, err := http.NewRequest("POST", "/group/list-users-in-group", mockRequestBufferString)
 	assert.NoError(t, err)
 	req.Header.Set("Authorization", validUserSignedString)
 	w := httptest.NewRecorder()
@@ -624,7 +624,7 @@ func TestListGroupResource(t *testing.T) {
 		"name": "DB Group"
 	}`
 	mockRequestBufferString := bytes.NewBufferString(mockRequest)
-	req, err := http.NewRequest("GET", "/group/list-resource-in-group", mockRequestBufferString)
+	req, err := http.NewRequest("POST", "/group/list-resource-in-group", mockRequestBufferString)
 	assert.NoError(t, err)
 	req.Header.Set("Authorization", validUserSignedString)
 	w := httptest.NewRecorder()
@@ -637,7 +637,7 @@ func TestListGroupResource(t *testing.T) {
 
 func TestListGroups(t *testing.T) {
 	mockRequestBufferString := bytes.NewBufferString("")
-	req, err := http.NewRequest("GET", "/group/list-groups", mockRequestBufferString)
+	req, err := http.NewRequest("POST", "/group/list-groups", mockRequestBufferString)
 	assert.NoError(t, err)
 	req.Header.Set("Authorization", validUserSignedString)
 	w := httptest.NewRecorder()
@@ -646,4 +646,37 @@ func TestListGroups(t *testing.T) {
 		log.Info().Msg(w.Body.String())
 	}
 	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestFindUser(t *testing.T) {
+	mockRequest := `{
+		"email": "test@test.com"
+	}`
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/user/find-user", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestAddGroupUserAlreadyInADifferentGroup(t *testing.T) {
+	mockRequest := `{
+		"name": "test group",
+		"emails": ["db@test.com"]
+	}`
+	mockRequestBufferString := bytes.NewBufferString(mockRequest)
+	req, err := http.NewRequest("POST", "/group/add-users", mockRequestBufferString)
+	assert.NoError(t, err)
+	req.Header.Set("Authorization", validUserSignedString)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code == http.StatusOK {
+		log.Info().Msg(w.Body.String())
+	}
+	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
 }

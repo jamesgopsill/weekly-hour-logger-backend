@@ -33,17 +33,19 @@ func Update(c *gin.Context) {
 			"error": "Auth pass-through problem.",
 			"data":  nil,
 		})
+		return
 	}
 
-	if claims.ID != body.ID && utils.Contains(claims.Scopes, db.ADMIN_SCOPE) {
+	if claims.ID != body.ID && !utils.Contains(claims.Scopes, db.ADMIN_SCOPE) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 			"error": "Need adminstrative rights.",
 			"data":  nil,
 		})
+		return
 	}
 
 	var user db.User
-	res := db.Connection.First(&user, "id=?", claims.ID)
+	res := db.Connection.First(&user, "id=?", body.ID)
 	if res.Error != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": "Account does not exist",
@@ -52,8 +54,13 @@ func Update(c *gin.Context) {
 		return
 	}
 
-	db.Connection.Model(&user).Update("Name", body.Name)
-	db.Connection.Model(&user).Update("Email", body.Email)
+	if body.Name != user.Name {
+		db.Connection.Model(&user).Update("Name", body.Name)
+	}
+
+	if body.Email != user.Email {
+		db.Connection.Model(&user).Update("Email", body.Email)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"error": nil,

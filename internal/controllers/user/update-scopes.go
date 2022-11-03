@@ -9,7 +9,7 @@ import (
 )
 
 type updateScopesRequest struct {
-	ID     string   `json:"id" binding:"required"`
+	Email  string   `json:"email" binding:"required"`
 	Scopes []string `json:"scopes" binding:"required"`
 }
 
@@ -45,7 +45,7 @@ func UpdateScopes(c *gin.Context) {
 
 	var user db.User
 
-	res := db.Connection.First(&user, "id=?", body.ID)
+	res := db.Connection.First(&user, "email=?", body.Email)
 	if res.Error != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": "Account does not exist",

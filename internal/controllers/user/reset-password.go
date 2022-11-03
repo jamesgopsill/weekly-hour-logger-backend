@@ -9,16 +9,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type updatePasswordRequest struct {
-	ID                 string `json:"id" binding:"required"`
-	OldPassword        string `json:"oldPassword" binding:"required"`
-	NewPassword        string `json:"newPassword" binding:"required"`
-	ConfirmNewPassword string `json:"confirmNewPassword" binding:"required"`
+type resetPasswordRequest struct {
+	ID string `json:"id" binding:"required"`
 }
 
-func UpdatePassword(c *gin.Context) {
+func ResetPassword(c *gin.Context) {
 
-	var body updatePasswordRequest
+	var body resetPasswordRequest
 	var err error
 
 	if err = c.ShouldBindJSON(&body); err != nil {
@@ -38,14 +35,6 @@ func UpdatePassword(c *gin.Context) {
 		return
 	}
 
-	if body.NewPassword != body.ConfirmNewPassword {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "New password and confirm new password do not match.",
-			"data":  nil,
-		})
-		return
-	}
-
 	var user db.User
 	res := db.Connection.First(&user, "id=?", body.ID)
 	if res.Error != nil {
@@ -56,24 +45,8 @@ func UpdatePassword(c *gin.Context) {
 		return
 	}
 
-	if claims.ID != body.ID {
-
-		err = bcrypt.CompareHashAndPassword(
-			[]byte(user.PasswordHash),
-			[]byte(body.OldPassword),
-		)
-		if err != nil {
-			c.JSON(http.StatusNoContent, gin.H{
-				"error": "Wrong password",
-				"data":  nil,
-			})
-			return
-		}
-
-	}
-
-	if claims.ID != body.ID || utils.Contains(claims.Scopes, db.USER_SCOPE) {
-		hash, err := bcrypt.GenerateFromPassword([]byte(body.NewPassword), bcrypt.MinCost)
+	if claims.ID != body.ID || utils.Contains(claims.Scopes, db.ADMIN_SCOPE) {
+		hash, err := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.MinCost)
 		if err != nil {
 			c.JSON(http.StatusUnprocessableEntity, gin.H{
 				"error": "Issue creating password",

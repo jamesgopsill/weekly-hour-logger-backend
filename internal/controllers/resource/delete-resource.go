@@ -9,7 +9,6 @@ import (
 
 type deleteResourceRequest struct {
 	Week      uint32 `json:"week" binding:"required"`
-	Value     uint32 `json:"value" binding:"required"`
 	Email     string `json:"email" binding:"required"`
 	GroupName string `json:"name" binding:"required"`
 }

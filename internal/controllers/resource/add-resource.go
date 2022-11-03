@@ -44,6 +44,8 @@ func AddResource(c *gin.Context) {
 	// Check that the user is in the group
 	var users []db.User
 	var userID string = ""
+	var userName = ""
+	var userEmail = ""
 
 	users = group.Users
 
@@ -51,6 +53,8 @@ func AddResource(c *gin.Context) {
 	for _, user := range users {
 		if user.Email == body.Email {
 			userID = user.ID
+			userName = user.Name
+			userEmail = user.Email
 		}
 	}
 
@@ -79,10 +83,12 @@ func AddResource(c *gin.Context) {
 
 	// create a new resource object
 	newResource := db.Resource{
-		Value:   body.Value,
-		Week:    body.Week,
-		GroupID: groupID,
-		UserID:  userID,
+		Value:     body.Value,
+		Week:      body.Week,
+		GroupID:   groupID,
+		UserID:    userID,
+		Username:  userName,
+		UserEmail: userEmail,
 	}
 
 	// add the new resource

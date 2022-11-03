@@ -1,12 +1,5 @@
 package db
 
-import (
-	"time"
-
-	"github.com/google/uuid"
-	"gorm.io/gorm"
-)
-
 type Resource struct {
 	ID        string `gorm:"primaryKey"`
 	CreatedAt time.Time

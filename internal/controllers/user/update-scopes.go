@@ -61,6 +61,13 @@ func UpdateScopes(c *gin.Context) {
 	if utils.Contains(body.Scopes, db.ADMIN_SCOPE) {
 		user.Scopes = append(user.Scopes, db.ADMIN_SCOPE)
 	}
+	/*
+		var scopes []string
+		scopes = append(scopes, db.USER_SCOPE)
+		if utils.Contains(body.Scopes, db.ADMIN_SCOPE) {
+			scopes = append(scopes, db.ADMIN_SCOPE)
+		}
+	*/
 
 	result := db.Connection.Model(&user).Update("Scopes", user.Scopes)
 
